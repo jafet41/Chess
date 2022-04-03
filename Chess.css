@@ -1,0 +1,121 @@
+html {
+  background: url('poster-big.jpg') no-repeat center center fixed;;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+h1 {
+	background-color: darkred;
+	width: 510px;
+	border-radius: 10px;
+	text-align: center;
+
+	margin-top: 2px;
+	margin-bottom: 2px;
+}
+body {
+	font-family: 'Permanent Marker', cursive;
+	max-width: 510px;
+  margin: auto;
+}
+
+.extraRow {
+	height: 15px;
+	line-height: 15px; 
+
+	display: table-row;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.mainRow {
+	height: 60px;
+	line-height: 60px; 
+
+	display: table-row;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.tileRowId{
+	color: white;
+	width: 15px; 
+	height: 60px;
+	line-height: 60px; 
+
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+
+	background-color: darkred;
+
+}
+
+.tile{
+	width: 60px; 
+	height: 60px;
+	line-height: 60px; 
+
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.tileColId{
+	color: whitesmoke;
+	width: 60px; 
+	height: 15px;
+	line-height: 15px; 
+
+	display: table-cell;
+	text-align: center;
+	vertical-align: middle;
+
+	background-color: darkred;
+}
+
+.tileCorner{
+	width: 15px; 
+	height: 15px;
+	line-height: 15px; 
+
+	display: table-cell;
+	vertical-align: middle;
+	background-color: darkred;
+}
+
+.white{
+	color: brown;
+	background-color: white;
+
+}
+
+.black{
+	color: brown;
+	background-color: darkcyan;
+}
+
+.imageSVG{
+	height: 55px;
+	width: 60px;
+	text-align: center;
+	vertical-align: middle;
+}
+
+.tablero{
+	color: whitesmoke;
+	font-size: 18px;
+	background-color: darkcyan;
+	width: 510px;
+	height: 30px;
+	border-radius: 10px;
+
+	display: inline-block;
+	text-align: center;
+	vertical-align: middle;
+
+	margin-top: 0px;
+	margin-bottom: 2px;
+
+}

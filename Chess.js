@@ -1,10 +1,11 @@
+import {Pawn, Rook, Knight, Bishop, Queen, King} from "./Pieces.js"
 //------------------------------------------Constants----------------------------------------------
 const body = document.body;
 const tablero = document.getElementById('tablero');
 const turno = document.getElementById('turno');
 const columns = ["A","B","C","D","E","F","G","H"];
-const colors = ["white","black"]; 
-const directions = ["positive","negative"]
+// const colors = ["white","black"]; 
+// const directions = ["positive","negative"]
 //White pieces
 const whiteKing = "<img src=\"Pieces/King-W.svg\" class=\"imageSVG\" />";
 const whiteQueen = "<img src=\"Pieces/Queen-W.svg\" class=\"imageSVG\" />";
@@ -20,259 +21,79 @@ const blackBishop = "<img src=\"Pieces/Bishop-B.svg\" class=\"imageSVG\" />";
 const blackKnight = "<img src=\"Pieces/Knight-B.svg\" class=\"imageSVG\" />";
 const blackPawn = "<img src=\"Pieces/Pawn-B.svg\" class=\"imageSVG\" />";
 //-------------------------------------------Globals-----------------------------------------------
+let activeDiv = [
+ [false, false, false, false, false, false, false, false],
+ [false, false, false, false, false, false, false, false],    
+ [false, false, false, false, false, false, false, false],
+ [false, false, false, false, false, false, false, false],
+ [false, false, false, false, false, false, false, false],
+ [false, false, false, false, false, false, false, false],
+ [false, false, false, false, false, false, false, false],
+ [false, false, false, false, false, false, false, false],
+];
+let isActiveDivClear = true;
+
+let enPassantFlagExists = false;
 let isWhitesTurn = true;
-//--------------------------------------Quick test of objects--------------------------------------
-// const myPawn = {
-// 	position: 'D2',
-// 	postPosition: ['D3', 'D4'],
-// 	avanzar:  (x) => {return postx;},
-// 	capturar: (x) => {return postx;}
-// };
-// myPawn.col=myPawn.position[0];
-// myPawn.row=myPawn.position[1];
-//-------------------------------------------Classes-----------------------------------------------
-//--------------------Peon-----------------------
-class Pawn{
-	constructor (_position,_isColorWhite) {
-		this.position = _position;
-		this.col = _position[0];
-		this.colN = columns.indexOf(_position[0]) + 1; 
-	//	this.colN = _position[0].charCodeAt(0) - 64;
-		this.row = _position[1];
-		if(_isColorWhite){
-			this.color = colors[0];
-			this.enemyColor = colors[1];
-			this.direction = directions[0];
-		} else {
-			this.color = colors[1];
-			this.enemyColor = colors[0];
-			this.direction = directions[1];
-		}
-		this.movesHistory.push(_position);
-		this.hasBeenMoved = false;
-	}
-
-	get col() {
-		return this._col;
-	}
-	get row() {
-		return this._row;
-	}
-	set col(newCol) {
-		this._col = newCol;
-	}
-	set row(newRow) {
-		this._row = newRow;
-	}
-
-	avanzar() {
-		if(this.direction==="positive"){
-			if(targetTile==empty)
-				this.row++;
-			else
-				console.log("Invalid move")
-		} else {
-			if(targetTile==empty)
-				this.row--;
-			else
-				console.log("Invalid move")
-		}
-		this.hasBeenMoved = true;
-	}
-	avanzar2() {
-		let origin = this.position;
-		if(direction==="positive"){
-			if(hasBeenMoved === false && inbetweenTiles==empty)
-				this.row += 2;
-			else
-				console.log("Invalid move");
-		} else {
-			if(hasBeenMoved === false && inbetweenTiles==empty)
-				this.row -= 2;
-			else
-				console.log("Invalid move");
-		}
-		this.hasBeenMoved = true;
-		return origin;
-	}
-	capturar() {
-		targetTiles=computeTlesForCapture();
-		if(direction==="positive") {
-			if(myCol==OccupiedByEnemy){
-				this.row++;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			} 
-		} else {
-			if(targetTiles==OccupiedByEnemy){
-				this.row--;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			}
-		}
-		this.hasBeenMoved = true;
-	}
-	capturarAlPaso() {
-		if(direction==="positive") {
-			if( (enemyOriginCol===(myCol+1) || enemyOriginCol===(myCol-1)) &&  enemyOriginRow===7  ){
-				this.row++;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			} 
-		} else {
-			if( (enemyOriginCol===(myCol+1) || enemyOriginCol===(myCol-1)) &&  enemyOriginRow===2  ){
-				this.row--;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			}			
-		}
-		this.hasBeenMoved = true;
-	}
-}
-// let myPawn1 = new Pawn("D2",true);
-// console.log(myPawn1);
-//-------------------Torre-----------------------
-class Rook{
-	constructor (_position,_isColorWhite) {
-		this.position = _position;
-		this.col = _position[0];
-		this.row = _position[1];
-		if(_isColorWhite){
-			this.color = colors[0];
-			this.enemyColor = colors[1];
-			this.direction = directions[0];
-		} else {
-			this.color = colors[1];
-			this.enemyColor = colors[0];
-			this.direction = directions[1];
-		}
-		this.hasBeenMoved = false;
-	}
-}
-//------------------Caballo----------------------
-class Knight{
-	constructor (_position,_isColorWhite) {
-		this.position = _position;
-		this.col = _position[0];
-		this.row = _position[1];
-		if(_isColorWhite){
-			this.color = colors[0];
-			this.enemyColor = colors[1];
-			this.direction = directions[0];
-		} else {
-			this.color = colors[1];
-			this.enemyColor = colors[0];
-			this.direction = directions[1];
-		}
-	}
-}
-//-------------------Alfil-----------------------
-class Bishop{
-	constructor (_position,_isColorWhite) {
-		this.position = _position;
-		this.col = _position[0];
-		this.row = _position[1];
-		if(_isColorWhite){
-			this.color = colors[0];
-			this.enemyColor = colors[1];
-			this.direction = directions[0];
-		} else {
-			this.color = colors[1];
-			this.enemyColor = colors[0];
-			this.direction = directions[1];
-		}
-	}
-}
-//-------------------Reina-----------------------
-class Queen{
-	constructor (_position,_isColorWhite) {
-		this.position = _position;
-		this.col = _position[0];
-		this.row = _position[1];
-		if(_isColorWhite){
-			this.color = colors[0];
-			this.enemyColor = colors[1];
-			this.direction = directions[0];
-		} else {
-			this.color = colors[1];
-			this.enemyColor = colors[0];
-			this.direction = directions[1];
-		}
-	}
-}
-//--------------------Rey------------------------
-class King{
-	constructor (_position,_isColorWhite) {
-		this.position = _position;
-		this.col = _position[0];
-		this.row = _position[1];
-		if(_isColorWhite){
-			this.color = colors[0];
-			this.enemyColor = colors[1];
-			this.direction = directions[0];
-		} else {
-			this.color = colors[1];
-			this.enemyColor = colors[0];
-			this.direction = directions[1];
-		}
-		this.hasBeenMoved = false;
-	}
-}
+let numeroDeTurno = 1;
+//Arrays of objects
+let oTowers = [];
+let oKnights = [];
+let oBishops = [];
+let oQueens = [];
+let oKings = [];
+let oPawns = [];
 //-------------------------------------------Helpers-----------------------------------------------
+//Setting initial position
 let initialPosition =  (i,div) => {
-	//Setting initial position
 	//Blacks
 	if( div.getAttribute("Id") === "A8" || div.getAttribute("Id") === "H8"){
 		div.innerHTML = blackTower;
 		div.dataset.piece="Tower";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
+
+		oTowers.push( new Rook(div.getAttribute("Id"), false ))
 	}
 	if( div.getAttribute("Id") === "B8" || div.getAttribute("Id") === "G8"){
 		div.innerHTML = blackKnight;
 		div.dataset.piece="Knight";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
+
+		oKnights.push( new Knight(div.getAttribute("Id"), false ))
 	}
 	if( div.getAttribute("Id") === "C8" || div.getAttribute("Id") === "F8"){
 		div.innerHTML = blackBishop;
 		div.dataset.piece="Bishop";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
+
+		oBishops.push( new Bishop(div.getAttribute("Id"), false ))
 	}
 	if( div.getAttribute("Id") === "D8"){
 		div.innerHTML = blackQueen;
 		div.dataset.piece="Queen";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
+
+		oQueens.push( new Queen(div.getAttribute("Id"), false ))
 	}
 	if( div.getAttribute("Id") === "E8"){
 		div.innerHTML = blackKing;
 		div.dataset.piece="King";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
+
+		oKings.push( new King(div.getAttribute("Id"), false ))
 	}
 	if(8-i===7){
 		div.innerHTML = blackPawn;
 		div.dataset.piece="Pawn";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
+
+		oPawns.push( new Pawn(div.getAttribute("Id"), false ))
 	}
 	//Whites
 	if(8-i===2){
@@ -280,36 +101,48 @@ let initialPosition =  (i,div) => {
 		div.dataset.piece="Pawn";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
+
+		oPawns.push( new Pawn(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "A1" || div.getAttribute("Id") === "H1"){
 		div.innerHTML = whiteTower;
 		div.dataset.piece="Tower";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
+
+		oTowers.push( new Rook(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "B1" || div.getAttribute("Id") === "G1"){
 		div.innerHTML = whiteKnight;
 		div.dataset.piece="Knight";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
+
+		oKnights.push( new Knight(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "C1" || div.getAttribute("Id") === "F1"){
 		div.innerHTML = whiteBishop;
 		div.dataset.piece="Bishop";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
+
+		oBishops.push( new Bishop(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "D1"){
 		div.innerHTML = whiteQueen;
 		div.dataset.piece="Queen";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
+
+		oQueens.push( new Queen(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "E1"){
 		div.innerHTML = whiteKing;
 		div.dataset.piece="King";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
+
+		oKings.push( new King(div.getAttribute("Id"), true ))
 	}
 	//Everything else is set to empty
 	if( 8-i===3 || 8-i===4 || 8-i===5 || 8-i===6 ){
@@ -320,6 +153,7 @@ let initialPosition =  (i,div) => {
 	}
 }
 
+//Rendering extra rows
 let renderExtraRow = (isBottom) => {
 	//Bottom red divs
 	const divRow = document.createElement("div");
@@ -354,7 +188,7 @@ let renderExtraCol = (i, divRow, isLeft) => {
 }
 //-------------------------------------------------------------------------------------------------
 turno.classList.add("tablero");
-turno.innerHTML= "Es El Turno De Las: " + (isWhitesTurn ? "Blancas" : "Negras");
+turno.innerHTML= "Es El Turno De Las: <span>" + (isWhitesTurn ? "Blancas </span>" : "Negras </span>");
 
 renderExtraRow(false);
 //Chess Board
@@ -376,19 +210,95 @@ for (var i = 0; i < 8; i++) {
 		div.setAttribute("Id",columns[j] + (8-i));
 		initialPosition(i,div);
 		divRow.append(div);
+
+		if( 8-i===1 || 8-i===2 || 8-i===7 || 8-i===8 ){
+			div.addEventListener("click", () => {
+  				console.log("Estas en: " + div.getAttribute("Id") );
+			})
+			if( 8-i===2 || 8-i===7 ){
+				//Pawn.computeTarget()
+			} 
+		}
 	}
 	renderExtraCol(i, divRow, false);
 }
 renderExtraRow(true);
-
+//------------------------------------------Instancias---------------------------------------------
+console.log(oQueens)
+console.log(oPawns)
 //--------------------------------------------Events-----------------------------------------------
-const myDIVS = Array.from(document.querySelectorAll('div.mainRow'));
-console.log(myDIVS[1])
+const occupiedDivs = Array.from(document.querySelectorAll('[data-is-occupied="true"]'));
+console.log(occupiedDivs);
 
-const A2 = document.getElementById("A2");
+let letrero = document.querySelector('span#turno.tablero');
+function changeTurn() {
+	isWhitesTurn = !isWhitesTurn;
+	letrero.innerHTML = "" + (isWhitesTurn ? "Blancas" : "Negras");
+}
 
-A2.addEventListener("click", () => {
-  console.log("estas en A2")
-})
+function setFalse() {
+	activeDiv.forEach( el => {	for (var i = 0; i < 8; i++) { el[i]=false; } });
+	isActiveDivClear = true;
+}
 
+function removeOthers(id) {
+	setFalse();
+	let c = columns.indexOf(id[0]);
+	let r = id[1];
+	activeDiv[8-r][c] = true;
+	isActiveDivClear = false;
+}
+
+function removeEvents(position){
+	//Remove events
+	let c = columns.indexOf(position[0]);
+	let r = position[1];
+	for (let i = 0; i <= 15; i++) {
+			let element = document.getElementById(oPawns[0+i].position);
+			if (i>=0 && i<=15 && i!=c){
+				element.removeEventListener("click", boundedClickHandler[0+i]);
+				console.log("Removido ");
+				console.log("activeDiv[6]["+j+"]:"+activeDiv[6][i]);
+			}
+	}
+}
+
+function addEvents(position){
+	//add events
+	let c = columns.indexOf(position[0]);
+	let r = position[1];
+	for (let i = 0; i <= 15; i++) {
+			let element = document.getElementById(oPawns[0+i].position);
+			if (i>=0 && i<=15 && i!=c){
+				element.addEventListener("click", boundedClickHandler[0+i]);
+				console.log("Agregado ");
+				console.log("activeDiv[6]["+j+"]:"+activeDiv[6][i]);
+			}
+	}
+}
+
+
+let clickHandler = (lista,elemento) => {
+	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
+	removeOthers(elemento.id);
+	removeEvents(elemento.id);
+	let listaCero = document.getElementById(lista[0]);
+	if( listaCero.classList.contains('yellow') ) {
+		console.log("Si hay amarillo");
+	} else {
+		setFalse();
+		addEvents(elemento.id);
+	}
+	console.table(activeDiv);
+	console.log(isActiveDivClear);
+}
+
+
+var boundedClickHandler = [];
+for (let i = 0; i <= 15; i++) {
+	let element = document.getElementById(oPawns[i].position);
+	let lista = oPawns[i].computeTarget();
+	boundedClickHandler[i] = clickHandler.bind(null,lista,element);
+	element.addEventListener("click", boundedClickHandler[i]);
+}
 

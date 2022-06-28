@@ -117,5 +117,12 @@ body {
 
 	margin-top: 0px;
 	margin-bottom: 2px;
+}
 
+
+.yellow{
+	border-color: yellow;
+	border-style: solid;
+	border-width: medium;
+	border-radius: 20px;
 }

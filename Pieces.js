@@ -36,8 +36,6 @@ export class Pawn{
 			let next2="" + columns[this.colN-1] + (parseInt(this.row) + 2);
 			let n=document.getElementById(next);
 			let n2=document.getElementById(next2);
-			console.log(next2);
-			console.log(n2);
 			
 			if(n.dataset.isOccupied !== undefined){
 				computedTiles.push(next);
@@ -60,7 +58,6 @@ export class Pawn{
 					computedTiles.push(diagonal2);
 				}
 			}
-			console.log(computedTiles);
 			return computedTiles;
 
 		} else {
@@ -70,8 +67,6 @@ export class Pawn{
 				let next2="" + columns[this.colN-1] + (parseInt(this.row) - 2);
 				let n=document.getElementById(next);
 				let n2=document.getElementById(next2);
-				console.log(next2);
-				console.log(n2);
 				
 				if(n.dataset.isOccupied !== undefined){
 					computedTiles.push(next);
@@ -94,7 +89,6 @@ export class Pawn{
 						computedTiles.push(diagonal2);
 					}
 				}
-				console.log(computedTiles);
 				return computedTiles;
 			}
 		}
@@ -205,6 +199,7 @@ export class Knight{
 	constructor (_position,_isColorWhite) {
 		this.position = _position;
 		this.col = _position[0];
+		this.colN = columns.indexOf(_position[0]) + 1;
 		this.row = _position[1];
 		if(_isColorWhite){
 			this.color = colors[0];
@@ -215,6 +210,53 @@ export class Knight{
 			this.enemyColor = colors[0];
 			this.direction = directions[1];
 		}
+	}
+
+	get col() {	return this._col;	}
+	get row() {	return this._row;	}
+	set col(newCol) {	this._col = newCol;	}
+	set row(newRow) {	this._row = newRow;	}
+
+	computeTarget(){
+			let computedTiles = [];
+			let validMoves = [];
+			//Upper side
+			if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+2 > 0 && parseInt(this.row)+2 < 9) { 
+				let upper1 = "" + columns[this.colN-2] + (parseInt(this.row) + 2);
+				validMoves.push ( upper1 );
+			}
+			if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+2 > 0 && parseInt(this.row)+2 < 9) { 
+				let upper2 = "" + columns[this.colN-0] + (parseInt(this.row) + 2);
+				validMoves.push ( upper2 );
+			}
+			if (this.colN-2 > 0 && this.colN-2 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
+				let upper3 = "" + columns[this.colN-3] + (parseInt(this.row) + 1);
+				validMoves.push ( upper3 );
+			}
+			if (this.colN+2 > 0 && this.colN+2 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) {
+				let upper4 = "" + columns[this.colN+1] + (parseInt(this.row) + 1);
+				validMoves.push ( upper4 );
+			}
+			//Lower side
+			if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-2 > 0 && parseInt(this.row)-2 < 9) { 
+				let lower1 =  "" + columns[this.colN-2] + (parseInt(this.row) - 2);
+				validMoves.push( lower1 );
+			}
+			if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-2 > 0 && parseInt(this.row)-2 < 9) { 
+				let lower2 =  "" + columns[this.colN-0] + (parseInt(this.row) - 2);
+				validMoves.push( lower2 );
+			}
+			if (this.colN-2 > 0 && this.colN-2 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
+				let lower3 =  "" + columns[this.colN-3] + (parseInt(this.row) - 1);
+				validMoves.push( lower3 );
+			}
+			if (this.colN+2 > 0 && this.colN+2 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) {
+				let lower4 =  "" + columns[this.colN+1] + (parseInt(this.row) - 1);				
+				validMoves.push( lower4 );
+			}
+
+			console.log(validMoves);
+			return validMoves;
 	}
 }
 //-------------------Alfil-----------------------

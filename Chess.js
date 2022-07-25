@@ -31,6 +31,7 @@ let activeDiv = [
  [false, false, false, false, false, false, false, false],
  [false, false, false, false, false, false, false, false],
 ];
+
 let isActiveDivClear = true;
 
 let enPassantFlagExists = false;
@@ -214,19 +215,17 @@ for (var i = 0; i < 8; i++) {
 		if( 8-i===1 || 8-i===2 || 8-i===7 || 8-i===8 ){
 			div.addEventListener("click", () => {
   				console.log("Estas en: " + div.getAttribute("Id") );
-			})
-			if( 8-i===2 || 8-i===7 ){
-				//Pawn.computeTarget()
-			} 
+			}) 
 		}
 	}
 	renderExtraCol(i, divRow, false);
 }
 renderExtraRow(true);
 //------------------------------------------Instancias---------------------------------------------
-console.log(oQueens)
-console.log(oPawns)
-//--------------------------------------------Events-----------------------------------------------
+console.log(oQueens);
+console.log(oPawns);
+console.table(activeDiv);
+//--------------------------------------------Eventos----------------------------------------------
 const occupiedDivs = Array.from(document.querySelectorAll('[data-is-occupied="true"]'));
 console.log(occupiedDivs);
 
@@ -249,50 +248,75 @@ function removeOthers(id) {
 	isActiveDivClear = false;
 }
 
+function removeEventsAllPawns(){
+	for (let i = 0; i <= 15; i++) {
+		let element = document.getElementById(oPawns[i].position);
+		element.removeEventListener("click", boundedClickHandler[i]);	
+	}
+}
+function addEventsAllPawns(){
+	for (let i = 0; i <= 15; i++) {
+		let element = document.getElementById(oPawns[i].position);
+		element.addEventListener("click", boundedClickHandler[i]);
+	}
+}
 function removeEvents(position){
 	//Remove events
 	let c = columns.indexOf(position[0]);
 	let r = position[1];
+	let x = 0;
+	if(r==2){
+		x = c + 8;
+		console.log("Equis:"+x );
+	} else {
+		x = c;
+		console.log("Equis:"+x );
+	}
 	for (let i = 0; i <= 15; i++) {
-			let element = document.getElementById(oPawns[0+i].position);
-			if (i>=0 && i<=15 && i!=c){
-				element.removeEventListener("click", boundedClickHandler[0+i]);
-				console.log("Removido ");
-				console.log("activeDiv[6]["+j+"]:"+activeDiv[6][i]);
+			let element = document.getElementById(oPawns[i].position);
+			if (oPawns[i].position!=position){
+				element.removeEventListener("click", boundedClickHandler[i]);
+				console.log("Removido");	
 			}
 	}
 }
-
 function addEvents(position){
-	//add events
+	//Add events
 	let c = columns.indexOf(position[0]);
 	let r = position[1];
+	let x = 0;
+	if(r==2){
+		x = c + 8;
+		console.log("Equis:"+x );
+	} else {
+		x = c;
+		console.log("Equis:"+x );
+	}
 	for (let i = 0; i <= 15; i++) {
-			let element = document.getElementById(oPawns[0+i].position);
-			if (i>=0 && i<=15 && i!=c){
-				element.addEventListener("click", boundedClickHandler[0+i]);
-				console.log("Agregado ");
-				console.log("activeDiv[6]["+j+"]:"+activeDiv[6][i]);
+			let element = document.getElementById(oPawns[i].position);
+			if (oPawns[i].position!=position){
+				element.addEventListener("click", boundedClickHandler[i]);
+				console.log("Agregado");
 			}
 	}
 }
-
-
 let clickHandler = (lista,elemento) => {
+	console.log(lista);
 	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
 	removeOthers(elemento.id);
 	removeEvents(elemento.id);
+	removeEventsAllKnights();
 	let listaCero = document.getElementById(lista[0]);
 	if( listaCero.classList.contains('yellow') ) {
 		console.log("Si hay amarillo");
 	} else {
 		setFalse();
 		addEvents(elemento.id);
+		addEventsAllKnights();
 	}
 	console.table(activeDiv);
 	console.log(isActiveDivClear);
 }
-
 
 var boundedClickHandler = [];
 for (let i = 0; i <= 15; i++) {
@@ -301,4 +325,64 @@ for (let i = 0; i <= 15; i++) {
 	boundedClickHandler[i] = clickHandler.bind(null,lista,element);
 	element.addEventListener("click", boundedClickHandler[i]);
 }
+//----------------------------------------Eventos-Caballo------------------------------------------
+function removeEventsAllKnights(){
+	for (let i = 0; i <= 3; i++) {
+		let element = document.getElementById(oKnights[i].position);
+		element.removeEventListener("click", boundedClickHandler_Knight[i]);
+	}
+}
+function addEventsAllKnights(){
+	for (let i = 0; i <= 3; i++) {
+		let element = document.getElementById(oKnights[i].position);
+		element.addEventListener("click", boundedClickHandler_Knight[i]);
+	}
+}
+function removeEvents_Knights(position_Kn){
+	//Remove events
+	let c = columns.indexOf(position_Kn[0]);
+	let r = position_Kn[1];
+	for (let i = 0; i <= 3; i++) {
+		let element = document.getElementById(oKnights[i].position);
+		if (oKnights[i].position!=position_Kn){
+			element.removeEventListener("click", boundedClickHandler_Knight[i]);
+			console.log("Removido");	
+		}
+	}
+}
+function addEvents_Knights(position_Kn){
+	//Add events
+	let c = columns.indexOf(position_Kn[0]);
+	let r = position_Kn[1];
+	for (let i = 0; i <= 3; i++) {
+		let element = document.getElementById(oKnights[i].position);
+		if (oKnights[i].position!=position_Kn){
+			element.addEventListener("click", boundedClickHandler_Knight[i]);
+		}
+	}
+}
+let clickHandler_Knight = (lista,elemento) => {
+	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
+	removeOthers(elemento.id);
+	removeEvents_Knights(elemento.id);
+	removeEventsAllPawns();
+	let listaCero = document.getElementById(lista[0]);
+	if( listaCero.classList.contains('yellow') ) {
+		console.log("Si hay amarillo");
+	} else {
+		setFalse();
+		addEvents_Knights(elemento.id);
+		addEventsAllPawns();
+	}
+	console.table(activeDiv);
+	console.log(isActiveDivClear);
+}
 
+var boundedClickHandler_Knight = [];
+for (let i = 0; i <= 3; i++) {
+	let element = document.getElementById(oKnights[i].position);
+	let lista = oKnights[i].computeTarget();
+	boundedClickHandler_Knight[i] = clickHandler_Knight.bind(null,lista,element);
+	element.addEventListener("click", boundedClickHandler_Knight[i]);
+}
+//----------------------------------------Eventos-Alfil------------------------------------------

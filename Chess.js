@@ -9,14 +9,14 @@ const columns = ["A","B","C","D","E","F","G","H"];
 //White pieces
 const whiteKing = "<img src=\"Pieces/King-W.svg\" class=\"imageSVG\" />";
 const whiteQueen = "<img src=\"Pieces/Queen-W.svg\" class=\"imageSVG\" />";
-const whiteTower = "<img src=\"Pieces/Tower-W.svg\" class=\"imageSVG\" />";
+const whiteRook = "<img src=\"Pieces/Tower-W.svg\" class=\"imageSVG\" />";
 const whiteBishop = "<img src=\"Pieces/Bishop-W.svg\" class=\"imageSVG\" />";
 const whiteKnight = "<img src=\"Pieces/Knight-W.svg\" class=\"imageSVG\" />";
 const whitePawn = "<img src=\"Pieces/Pawn-W.svg\" class=\"imageSVG\" />";
 //Black pieces
 const blackKing = "<img src=\"Pieces/King-B.svg\" class=\"imageSVG\" />";
 const blackQueen = "<img src=\"Pieces/Queen-B.svg\" class=\"imageSVG\" />";
-const blackTower = "<img src=\"Pieces/Tower-B.svg\" class=\"imageSVG\" />";
+const blackRook = "<img src=\"Pieces/Tower-B.svg\" class=\"imageSVG\" />";
 const blackBishop = "<img src=\"Pieces/Bishop-B.svg\" class=\"imageSVG\" />";
 const blackKnight = "<img src=\"Pieces/Knight-B.svg\" class=\"imageSVG\" />";
 const blackPawn = "<img src=\"Pieces/Pawn-B.svg\" class=\"imageSVG\" />";
@@ -33,28 +33,36 @@ let activeDiv = [
 ];
 
 let isActiveDivClear = true;
-
 let enPassantFlagExists = false;
 let isWhitesTurn = true;
 let numeroDeTurno = 1;
+
 //Arrays of objects
-let oTowers = [];
+let oRooks = [];
 let oKnights = [];
 let oBishops = [];
 let oQueens = [];
 let oKings = [];
 let oPawns = [];
+//-----------------------------------------Cambiar-Turno-------------------------------------------
+function cambiarTurno(){
+	isWhitesTurn = !isWhitesTurn;
+	turno.innerHTML= "Es El Turno De Las: <span>" + (isWhitesTurn ? "Blancas </span>" : "Negras </span>");
+	if(isWhitesTurn) { 
+		numeroDeTurno++;
+	}
+}
 //-------------------------------------------Helpers-----------------------------------------------
 //Setting initial position
 let initialPosition =  (i,div) => {
 	//Blacks
 	if( div.getAttribute("Id") === "A8" || div.getAttribute("Id") === "H8"){
-		div.innerHTML = blackTower;
-		div.dataset.piece="Tower";
+		div.innerHTML = blackRook;
+		div.dataset.piece="Rook";
 		div.dataset.pieceColor="Black";
 		div.dataset.isOccupied='true';
 
-		oTowers.push( new Rook(div.getAttribute("Id"), false ))
+		oRooks.push( new Rook(div.getAttribute("Id"), false ))
 	}
 	if( div.getAttribute("Id") === "B8" || div.getAttribute("Id") === "G8"){
 		div.innerHTML = blackKnight;
@@ -106,12 +114,12 @@ let initialPosition =  (i,div) => {
 		oPawns.push( new Pawn(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "A1" || div.getAttribute("Id") === "H1"){
-		div.innerHTML = whiteTower;
-		div.dataset.piece="Tower";
+		div.innerHTML = whiteRook;
+		div.dataset.piece="Rook";
 		div.dataset.pieceColor="White";
 		div.dataset.isOccupied='true';
 
-		oTowers.push( new Rook(div.getAttribute("Id"), true ))
+		oRooks.push( new Rook(div.getAttribute("Id"), true ))
 	}
 	if( div.getAttribute("Id") === "B1" || div.getAttribute("Id") === "G1"){
 		div.innerHTML = whiteKnight;
@@ -225,7 +233,7 @@ renderExtraRow(true);
 console.log(oQueens);
 console.log(oPawns);
 console.table(activeDiv);
-//--------------------------------------------Eventos----------------------------------------------
+//=========================================Eventos=================================================
 const occupiedDivs = Array.from(document.querySelectorAll('[data-is-occupied="true"]'));
 console.log(occupiedDivs);
 
@@ -247,116 +255,223 @@ function removeOthers(id) {
 	activeDiv[8-r][c] = true;
 	isActiveDivClear = false;
 }
+//-----------------------------------------Eventos-Peon--------------------------------------------
+var boundedHandlerMove = [];
+var boundedClickHandler = [];
 
-function removeEventsAllPawns(){
-	for (let i = 0; i <= 15; i++) {
+function removeEventsPawns(position="All"){
+	//Remove events except indicated position
+	for (let i = 0; i < oPawns.length; i++) {
 		let element = document.getElementById(oPawns[i].position);
-		element.removeEventListener("click", boundedClickHandler[i]);	
+		if (oPawns[i].position!=position){
+			element.removeEventListener("click", boundedClickHandler[i]);
+			console.log("Removido");	
+		}
 	}
-}
-function addEventsAllPawns(){
-	for (let i = 0; i <= 15; i++) {
-		let element = document.getElementById(oPawns[i].position);
-		element.addEventListener("click", boundedClickHandler[i]);
-	}
-}
-function removeEvents(position){
-	//Remove events
-	let c = columns.indexOf(position[0]);
-	let r = position[1];
-	let x = 0;
-	if(r==2){
-		x = c + 8;
-		console.log("Equis:"+x );
-	} else {
-		x = c;
-		console.log("Equis:"+x );
-	}
-	for (let i = 0; i <= 15; i++) {
+	//Remove all Pawn Events
+	if (position==="All") {
+		for (let i = 0; i < oPawns.length; i++) {
 			let element = document.getElementById(oPawns[i].position);
-			if (oPawns[i].position!=position){
-				element.removeEventListener("click", boundedClickHandler[i]);
-				console.log("Removido");	
-			}
+			element.removeEventListener("click", boundedClickHandler[i]);
+			console.log("Removidos todos los peones");
+		}
 	}
 }
-function addEvents(position){
+
+function addEventsPawns(color){
 	//Add events
-	let c = columns.indexOf(position[0]);
-	let r = position[1];
-	let x = 0;
-	if(r==2){
-		x = c + 8;
-		console.log("Equis:"+x );
-	} else {
-		x = c;
-		console.log("Equis:"+x );
-	}
-	for (let i = 0; i <= 15; i++) {
+	for (let i = 0; i < oPawns.length; i++) {
 			let element = document.getElementById(oPawns[i].position);
-			if (oPawns[i].position!=position){
+			if (oPawns[i].color === color){
 				element.addEventListener("click", boundedClickHandler[i]);
 				console.log("Agregado");
 			}
 	}
 }
+
+
 let clickHandler = (lista,elemento) => {
-	console.log(lista);
 	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
 	removeOthers(elemento.id);
-	removeEvents(elemento.id);
-	removeEventsAllKnights();
+	removeEventsPawns(elemento.id);
+	//removeEvents_Knights();
 	let listaCero = document.getElementById(lista[0]);
+
+	if (listaCero===null) { 
+		setFalse();
+		addEventsPawns(elemento.dataset.pieceColor);
+		//addEvents_Knights(elemento.dataset.pieceColor);
+		return;
+	}
+
 	if( listaCero.classList.contains('yellow') ) {
 		console.log("Si hay amarillo");
+		lista.forEach( (item,i) => {
+			boundedHandlerMove[i] = handlerMove.bind(null,elemento.id,item,lista);
+			let element = document.getElementById(item);
+			element.addEventListener("click", boundedHandlerMove[i]);
+		});
 	} else {
 		setFalse();
-		addEvents(elemento.id);
-		addEventsAllKnights();
+		addEventsPawns(elemento.dataset.pieceColor);
+		//addEvents_Knights(elemento.dataset.pieceColor);
+		lista.forEach( (item,i) => {
+			let element = document.getElementById(item);
+			element.removeEventListener("click", boundedHandlerMove[i]);
+		});
 	}
-	console.table(activeDiv);
-	console.log(isActiveDivClear);
 }
 
-var boundedClickHandler = [];
-for (let i = 0; i <= 15; i++) {
-	let element = document.getElementById(oPawns[i].position);
-	let lista = oPawns[i].computeTarget();
-	boundedClickHandler[i] = clickHandler.bind(null,lista,element);
-	element.addEventListener("click", boundedClickHandler[i]);
+let handlerMove = (pos1,pos2,lista) => {
+	let div1 = document.getElementById(pos1);
+	let div2 = document.getElementById(pos2);
+	let areDiv1Div2Different = div1.dataset.pieceColor !== div2.dataset.pieceColor;
+	let div1Color = div1.dataset.pieceColor;
+
+	//Move Piece
+	if(div2.dataset.isOccupied ==="false"){
+	
+		div1.innerHTML = "";
+		div1.dataset.piece = "";
+		div1.dataset.pieceColor = "";
+		div1.dataset.isOccupied = "false";
+
+		if (div1Color === "White") {
+			div2.innerHTML = whitePawn;
+			div2.dataset.piece = "Pawn";
+			div2.dataset.pieceColor = "White";
+			div2.dataset.isOccupied = "true";
+			console.log("Mover: pieza blanca");
+		} else {
+			div2.innerHTML = blackPawn;
+			div2.dataset.piece = "Pawn";
+			div2.dataset.pieceColor = "Black";
+			div2.dataset.isOccupied = "true";
+			console.log("Mover: pieza negra");
+		}
+	//Capture Rival Piece 				
+	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
+		
+		div1.innerHTML = "";
+		div1.dataset.piece = "";
+		div1.dataset.pieceColor = "";
+		div1.dataset.isOccupied = "false";
+
+		let capturedPiece = div2.dataset.piece;
+		switch (capturedPiece) {
+		  case "Pawn": {
+		  	let index = oPawns.findIndex( x => x.position===div2.id);
+		    oPawns.splice(index, 1);
+		    boundedClickHandler.splice(index, 1);
+		    break;
+			}
+		  case "Knight": {
+		    let index = oKnights.findIndex( x => x.position===div2.id);
+		    oKnights.splice(index, 1);
+		    //boundedClickHandler_Knight.splice(index, 1);
+		    break;
+			}
+		  case "Bishop": {
+		  	let index = oBishops.findIndex( x => x.position===div2.id);
+		    oBishops.splice(index, 1);
+		    break;
+			}
+		  case "Rook": {
+		    let index = oRooks.findIndex( x => x.position===div2.id);
+		    oRooks.splice(index, 1);
+		    break;
+			}
+		  case "Queen": {
+		    let index = oQueens.findIndex( x => x.position===div2.id);
+		    oQueens.splice(index, 1);
+		    break;
+			}
+		  default: {
+		    console.log("Sin pieza capturada");
+		    break;
+			}
+		}
+		
+		if (div1Color === "White") {
+			div2.innerHTML = whitePawn;
+			div2.dataset.piece = "Pawn";
+			div2.dataset.pieceColor = "White";
+			div2.dataset.isOccupied = "true";
+			console.log("Captura: pieza blanca");
+		} else if (div1Color === "Black") {
+			div2.innerHTML = blackPawn;
+			div2.dataset.piece = "Pawn";
+			div2.dataset.pieceColor = "Black";
+			div2.dataset.isOccupied = "true";
+			console.log("Captura: pieza negra");
+		}
+	}
+
+	//Update sign
+	cambiarTurno();
+	//Update position
+	let k = oPawns.findIndex( x => x.position===pos1);
+	oPawns[k].position = pos2;
+	
+	//Remove pos1 event
+	div1.removeEventListener("click", boundedClickHandler[k]);
+	
+	//Update bounded function
+	boundCH();
+	
+	//Remove yellow events
+	lista.forEach( el => document.getElementById(el).classList.remove('yellow') );
+	lista.forEach( (el,i)=>{
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove[i]);
+	});
+
+	//Add all enemy events
+	if (div1Color === "White") {
+		addEventsPawns("Black");
+		//addEvents_Knights("Black");
+	} else if (div1Color === "Black") {
+		addEventsPawns("White");
+		//addEvents_Knights("White");
+	}
 }
+
+function boundCH(){
+	for (let i = 0; i < oPawns.length; i++) {
+		let element = document.getElementById(oPawns[i].position);
+		let lista = oPawns[i].computeTarget();
+		boundedClickHandler[i] = clickHandler.bind(null,lista,element);
+	}
+}
+boundCH();
+addEventsPawns("White");
 //----------------------------------------Eventos-Caballo------------------------------------------
-function removeEventsAllKnights(){
-	for (let i = 0; i <= 3; i++) {
-		let element = document.getElementById(oKnights[i].position);
-		element.removeEventListener("click", boundedClickHandler_Knight[i]);
-	}
-}
-function addEventsAllKnights(){
-	for (let i = 0; i <= 3; i++) {
-		let element = document.getElementById(oKnights[i].position);
-		element.addEventListener("click", boundedClickHandler_Knight[i]);
-	}
-}
-function removeEvents_Knights(position_Kn){
-	//Remove events
-	let c = columns.indexOf(position_Kn[0]);
-	let r = position_Kn[1];
-	for (let i = 0; i <= 3; i++) {
+/*var boundedClickHandler_Knight = [];
+var boundedHandlerMove_Knight = [];
+
+function removeEvents_Knights(position_Kn="All"){
+	//Remove events except the indicated one
+	for (let i = 0; i < oKnights.length; i++) {
 		let element = document.getElementById(oKnights[i].position);
 		if (oKnights[i].position!=position_Kn){
 			element.removeEventListener("click", boundedClickHandler_Knight[i]);
 			console.log("Removido");	
 		}
 	}
+	//Remove all Knight Events
+	if (position_Kn === "All") {
+		for (let i = 0; i < oPawns.length; i++) {
+			let element = document.getElementById(oPawns[i].position);
+			element.removeEventListener("click", boundedClickHandler[i]);
+			console.log("Removidos todos los caballos");
+		}
+	}
 }
-function addEvents_Knights(position_Kn){
+function addEvents_Knights(color_Kn){
 	//Add events
-	let c = columns.indexOf(position_Kn[0]);
-	let r = position_Kn[1];
-	for (let i = 0; i <= 3; i++) {
+	for (let i = 0; i < oKnights.length; i++) {
 		let element = document.getElementById(oKnights[i].position);
-		if (oKnights[i].position!=position_Kn){
+		if (oKnights[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_Knight[i]);
 		}
 	}
@@ -364,25 +479,158 @@ function addEvents_Knights(position_Kn){
 let clickHandler_Knight = (lista,elemento) => {
 	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
 	removeOthers(elemento.id);
+	removeEventsPawns();
 	removeEvents_Knights(elemento.id);
-	removeEventsAllPawns();
+
 	let listaCero = document.getElementById(lista[0]);
+	if (listaCero===null) { 
+		setFalse();
+		addEventsPawns(elemento.dataset.pieceColor);
+		addEvents_Knights();
+		return;
+	}
+
 	if( listaCero.classList.contains('yellow') ) {
 		console.log("Si hay amarillo");
+		lista.forEach( (item,i) => {
+			boundedHandlerMove_Knight[i] = handlerMove_Knight.bind(null,elemento.id,item,lista);
+			let element = document.getElementById(item);
+			element.addEventListener("click", boundedHandlerMove_Knight[i]);
+		});
 	} else {
 		setFalse();
-		addEvents_Knights(elemento.id);
-		addEventsAllPawns();
+		addEventsPawns(elemento.dataset.pieceColor);
+		addEvents_Knights(elemento.dataset.pieceColor);
+		lista.forEach( (item,i) => {
+			let element = document.getElementById(item);
+			element.removeEventListener("click", boundedHandlerMove_Knight[i]);
+		});
 	}
-	console.table(activeDiv);
-	console.log(isActiveDivClear);
 }
 
-var boundedClickHandler_Knight = [];
-for (let i = 0; i <= 3; i++) {
-	let element = document.getElementById(oKnights[i].position);
-	let lista = oKnights[i].computeTarget();
-	boundedClickHandler_Knight[i] = clickHandler_Knight.bind(null,lista,element);
-	element.addEventListener("click", boundedClickHandler_Knight[i]);
+let handlerMove_Knight = (pos1,pos2,lista) => {
+	let div1 = document.getElementById(pos1);
+	let div2 = document.getElementById(pos2);
+	let areDiv1Div2Different = div1.dataset.pieceColor !== div2.dataset.pieceColor;
+	let div1Color = div1.dataset.pieceColor;
+
+	//Move Piece
+	if(div2.dataset.isOccupied ==="false"){
+	
+		div1.innerHTML = "";
+		div1.dataset.piece = "";
+		div1.dataset.pieceColor = "";
+		div1.dataset.isOccupied = "false";
+
+		if (div1Color === "White") {
+			div2.innerHTML = whiteKnight;
+			div2.dataset.piece = "Knight";
+			div2.dataset.pieceColor = "White";
+			div2.dataset.isOccupied = "true";
+			console.log("Mover: pieza blanca");
+		} else {
+			div2.innerHTML = blackKnight;
+			div2.dataset.piece = "Knight";
+			div2.dataset.pieceColor = "Black";
+			div2.dataset.isOccupied = "true";
+			console.log("Mover: pieza negra");
+		}
+	//Capture Rival Piece 				
+	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
+		
+		div1.innerHTML = "";
+		div1.dataset.piece = "";
+		div1.dataset.pieceColor = "";
+		div1.dataset.isOccupied = "false";
+
+		let capturedPiece = div2.dataset.piece;
+		switch (capturedPiece) {
+		  case "Pawn": {
+		  	let index = oPawns.findIndex( x => x.position===div2.id);
+		    oPawns.splice(index, 1);
+		    boundedClickHandler.splice(index, 1);
+		    break;
+			}
+		  case "Knight": {
+		    let index = oKnights.findIndex( x => x.position===div2.id);
+		    oKnights.splice(index, 1);
+		    boundedClickHandler_Knight.splice(index, 1);
+		    break;
+			}
+		  case "Bishop": {
+		  	let index = oBishops.findIndex( x => x.position===div2.id);
+		    oBishops.splice(index, 1);
+		    break;
+			}
+		  case "Rook": {
+		    let index = oRooks.findIndex( x => x.position===div2.id);
+		    oRooks.splice(index, 1);
+		    break;
+			}
+		  case "Queen": {
+		    let index = oQueens.findIndex( x => x.position===div2.id);
+		    oQueens.splice(index, 1);
+		    break;
+			}
+		  default: {
+		    console.log("Sin pieza capturada");
+		    break;
+			}
+		}
+		
+		if (div1Color === "White") {
+			div2.innerHTML = whiteKnight;
+			div2.dataset.piece = "Knight";
+			div2.dataset.pieceColor = "White";
+			div2.dataset.isOccupied = "true";
+			console.log("Captura: pieza blanca");
+		} else if (div1Color === "Black") {
+			div2.innerHTML = blackKnight;
+			div2.dataset.piece = "Knight";
+			div2.dataset.pieceColor = "Black";
+			div2.dataset.isOccupied = "true";
+			console.log("Captura: pieza negra");
+		}
+	}
+
+	//Update sign
+	cambiarTurno();
+	//Update position
+	let k = oKnights.findIndex( x => x.position===pos1);
+	oKnights[k].position = pos2;
+	
+	//Remove pos1 event
+	div1.removeEventListener("click", boundedClickHandler_Knight[k]);
+	
+	//Update bounded function
+	boundCH_Knight();
+	
+	//Remove yellow events
+	lista.forEach( el => document.getElementById(el).classList.remove('yellow') );
+	lista.forEach( (el,i)=>{
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove_Knight[i]);
+	});
+
+	//Add all enemy events
+	if (div1Color === "White") {
+		addEventsPawns("Black");
+		addEvents_Knights("Black");
+	} else if (div1Color === "Black") {
+		addEventsPawns("White");
+		addEvents_Knights("White");
+	}
 }
+
+function boundCH_Knight(){
+	for (let i = 0; i < oKnights.length; i++) {
+		let element = document.getElementById(oKnights[i].position);
+		let lista = oKnights[i].computeTarget();
+		boundedClickHandler_Knight[i] = clickHandler_Knight.bind(null,lista,element);
+		//element.addEventListener("click", boundedClickHandler_Knight[i]);
+	}
+}
+
+boundCH_Knight();
+addEvents_Knights("White");*/
 //----------------------------------------Eventos-Alfil------------------------------------------

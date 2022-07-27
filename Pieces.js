@@ -1,8 +1,8 @@
 //-------------------------------------------Classes-----------------------------------------------
-const colors = ["white","black"]; 
+const colors = ["White","Black"]; 
 const directions = ["positive","negative"]
 const columns = ["A","B","C","D","E","F","G","H"];
-//--------------------Peon-----------------------
+//---------------------------------------------Peon------------------------------------------------
 export class Pawn{
 	constructor (_position,_isColorWhite) {
 		this.movesHistory = []
@@ -23,69 +23,88 @@ export class Pawn{
 		this.hasBeenMoved = false;
 	}
 
-	get col() {	return this._col;	}
-	get row() {	return this._row;	}
-	set col(newCol) {	this._col = newCol;	}
-	set row(newRow) {	this._row = newRow;	}
+	get col()  {	return this._col;	}
+	get colN() { 	return this._colN;	}
+	get row()  {	return this._row;	}
+	get position() { return this._position;	}
+
+	set col(newCol)	  {	this._col = newCol;	  }
+	set colN(newColN) {	this._colN = newColN; }
+	set row(newRow)   {	this._row = newRow;	  }
+	set position(newPos) {	
+		this._position = newPos;
+		this._col = newPos[0];	
+		this._colN = columns.indexOf(newPos[0]) + 1;
+		this._row = newPos[1];
+
+		this.movesHistory.push(newPos);
+		this.hasBeenMoved = true;	
+	}
 
 
 	computeTarget(){
-		if(this.color == "white" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
+		if(this.color == "White" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
 			let computedTiles = [];
+			if (parseInt(this.row) === 8) {
+				return computedTiles;
+			}
 			let next="" + columns[this.colN-1] + (parseInt(this.row) + 1);
 			let next2="" + columns[this.colN-1] + (parseInt(this.row) + 2);
 			let n=document.getElementById(next);
 			let n2=document.getElementById(next2);
 			
-			if(n.dataset.isOccupied !== undefined){
+			if(n.dataset.isOccupied === "false"){
 				computedTiles.push(next);
 			}
-			if(this.hasBeenMoved == false && n.dataset.isOccupied !== undefined && n2.dataset.isOccupied !== undefined){
+			if(this.hasBeenMoved == false && n.dataset.isOccupied === "false" && n2.dataset.isOccupied === "false"){
 				computedTiles.push(next2);
 			}
 			
 			if (this.colN !== 1 ){
 				let diagonal1="" + columns[this.colN-2] + (parseInt(this.row) + 1);
 				let d1=document.getElementById(diagonal1);
-				if (d1.dataset.isOccupied && d1.dataset.pieceColor==="Black"){
+				if (d1.dataset.isOccupied === "true" && d1.dataset.pieceColor==="Black"){
 					computedTiles.push(diagonal1);
 				}
 			}
 			if (this.colN !== 8 ){
 				let diagonal2="" + columns[this.colN] + (parseInt(this.row) + 1);
 				let d2=document.getElementById(diagonal2);
-				if (d2.dataset.isOccupied && d2.dataset.pieceColor==="Black" && this.colN!==8){	
+				if (d2.dataset.isOccupied === "true" && d2.dataset.pieceColor==="Black" && this.colN!==8){	
 					computedTiles.push(diagonal2);
 				}
 			}
 			return computedTiles;
 
 		} else {
-			if(this.color == "black" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
+			if(this.color == "Black" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
 				let computedTiles = [];
+				if (parseInt(this.row) === 1) {
+					return computedTiles;
+				}
 				let next="" + columns[this.colN-1] + (parseInt(this.row) - 1);
 				let next2="" + columns[this.colN-1] + (parseInt(this.row) - 2);
 				let n=document.getElementById(next);
 				let n2=document.getElementById(next2);
 				
-				if(n.dataset.isOccupied !== undefined){
+				if(n.dataset.isOccupied === "false"){
 					computedTiles.push(next);
 				}
-				if(this.hasBeenMoved == false && n.dataset.isOccupied !== undefined && n2.dataset.isOccupied !== undefined){
+				if(this.hasBeenMoved == false && n.dataset.isOccupied === "false" && n2.dataset.isOccupied === "false"){
 					computedTiles.push(next2);
 				}
 				
 				if (this.colN !== 1 ){
 					let diagonal1="" + columns[this.colN-2] + (parseInt(this.row) - 1);
 					let d1=document.getElementById(diagonal1);
-					if (d1.dataset.isOccupied && d1.dataset.pieceColor==="White"){
+					if (d1.dataset.isOccupied === "true" && d1.dataset.pieceColor==="White"){
 						computedTiles.push(diagonal1);
 					}
 				}
 				if (this.colN !== 8 ){
 					let diagonal2="" + columns[this.colN] + (parseInt(this.row) - 1);
 					let d2=document.getElementById(diagonal2);
-					if (d2.dataset.isOccupied && d2.dataset.pieceColor==="White" && this.colN!==8){	
+					if (d2.dataset.isOccupied === "true" && d2.dataset.pieceColor==="White" && this.colN!==8){	
 						computedTiles.push(diagonal2);
 					}
 				}
@@ -94,61 +113,6 @@ export class Pawn{
 		}
 	}
 
-	avanzar() {
-		if(this.direction==="positive"){
-			if(targetTile==empty)
-				this.row++;
-			else
-				console.log("Invalid move")
-		} else {
-			if(targetTile==empty)
-				this.row--;
-			else
-				console.log("Invalid move")
-		}
-		this.hasBeenMoved = true;
-	}
-	avanzar2() {
-		let origin = this.position;
-		if(direction==="positive"){
-			if(hasBeenMoved === false && inbetweenTiles==empty)
-				this.row += 2;
-			else
-				console.log("Invalid move");
-		} else {
-			if(hasBeenMoved === false && inbetweenTiles==empty)
-				this.row -= 2;
-			else
-				console.log("Invalid move");
-		}
-		this.hasBeenMoved = true;
-		return origin;
-	}
-	capturar() {
-		targetTiles=computeTlesForCapture();
-		if(direction==="positive") {
-			if(myCol==OccupiedByEnemy){
-				this.row++;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			} 
-		} else {
-			if(targetTiles==OccupiedByEnemy){
-				this.row--;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			}
-		}
-		this.hasBeenMoved = true;
-	}
 	capturarAlPaso() {
 		if(direction==="positive") {
 			if( (enemyOriginCol===(myCol+1) || enemyOriginCol===(myCol-1)) &&  enemyOriginRow===7  ){
@@ -176,7 +140,7 @@ export class Pawn{
  }
 // let myPawn1 = new Pawn("D2",true);
 // console.log(myPawn1);
-//-------------------Torre-----------------------
+//--------------------------------------------Torre------------------------------------------------
 export class Rook{
 	constructor (_position,_isColorWhite) {
 		this.position = _position;
@@ -194,7 +158,7 @@ export class Rook{
 		this.hasBeenMoved = false;
 	}
 }
-//------------------Caballo----------------------
+//--------------------------------------------Caballo----------------------------------------------
 export class Knight{
 	constructor (_position,_isColorWhite) {
 		this.position = _position;
@@ -214,52 +178,77 @@ export class Knight{
 
 	get col() {	return this._col;	}
 	get row() {	return this._row;	}
+	get position() { return this._position;	}
+
 	set col(newCol) {	this._col = newCol;	}
 	set row(newRow) {	this._row = newRow;	}
+	set position(newPos) {	this._position = newPos; }
+
 
 	computeTarget(){
-			let computedTiles = [];
 			let validMoves = [];
 			//Upper side
 			if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+2 > 0 && parseInt(this.row)+2 < 9) { 
 				let upper1 = "" + columns[this.colN-2] + (parseInt(this.row) + 2);
-				validMoves.push ( upper1 );
+				let u1 = document.getElementById(upper1);
+				if(u1.dataset.isOccupied === "false"){
+					validMoves.push ( upper1 );
+				}
 			}
 			if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+2 > 0 && parseInt(this.row)+2 < 9) { 
 				let upper2 = "" + columns[this.colN-0] + (parseInt(this.row) + 2);
-				validMoves.push ( upper2 );
+				let u2 = document.getElementById(upper2);
+				if(u2.dataset.isOccupied === "false"){
+					validMoves.push ( upper2 );
+				}
 			}
 			if (this.colN-2 > 0 && this.colN-2 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
 				let upper3 = "" + columns[this.colN-3] + (parseInt(this.row) + 1);
-				validMoves.push ( upper3 );
+				let u3 = document.getElementById(upper3);
+				if(u3.dataset.isOccupied === "false"){
+					validMoves.push ( upper3 );
+				}
 			}
 			if (this.colN+2 > 0 && this.colN+2 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) {
 				let upper4 = "" + columns[this.colN+1] + (parseInt(this.row) + 1);
-				validMoves.push ( upper4 );
+				let u4 = document.getElementById(upper4);
+				if (u4.dataset.isOccupied === "false") {
+					validMoves.push ( upper4 );
+				}
 			}
 			//Lower side
 			if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-2 > 0 && parseInt(this.row)-2 < 9) { 
 				let lower1 =  "" + columns[this.colN-2] + (parseInt(this.row) - 2);
-				validMoves.push( lower1 );
+				let l1 = document.getElementById(lower1);
+				if (l1.dataset.isOccupied === "false") {
+					validMoves.push ( lower1 );
+				}
 			}
 			if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-2 > 0 && parseInt(this.row)-2 < 9) { 
 				let lower2 =  "" + columns[this.colN-0] + (parseInt(this.row) - 2);
-				validMoves.push( lower2 );
+				let l2 = document.getElementById(lower2);
+				if (l2.dataset.isOccupied === "false") {
+					validMoves.push ( lower2 );
+				}
 			}
 			if (this.colN-2 > 0 && this.colN-2 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
 				let lower3 =  "" + columns[this.colN-3] + (parseInt(this.row) - 1);
-				validMoves.push( lower3 );
+				let l3 = document.getElementById(lower3);
+				if (l3.dataset.isOccupied === "false") {
+					validMoves.push ( lower3 );
+				}
 			}
 			if (this.colN+2 > 0 && this.colN+2 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) {
-				let lower4 =  "" + columns[this.colN+1] + (parseInt(this.row) - 1);				
-				validMoves.push( lower4 );
+				let lower4 =  "" + columns[this.colN+1] + (parseInt(this.row) - 1);
+				let l4 = document.getElementById(lower4);
+				if (l4.dataset.isOccupied === "false") {
+					validMoves.push( lower4 );
+				}
 			}
-
-			console.log(validMoves);
 			return validMoves;
 	}
 }
-//-------------------Alfil-----------------------
+//---------------------------------------------Alfil-----------------------------------------------
 export class Bishop{
 	constructor (_position,_isColorWhite) {
 		this.position = _position;
@@ -276,7 +265,7 @@ export class Bishop{
 		}
 	}
 }
-//-------------------Reina-----------------------
+//---------------------------------------------Reina-----------------------------------------------
 export class Queen{
 	constructor (_position,_isColorWhite) {
 		this.position = _position;
@@ -293,7 +282,7 @@ export class Queen{
 		}
 	}
 }
-//--------------------Rey------------------------
+//----------------------------------------------Rey------------------------------------------------
 export class King{
 	constructor (_position,_isColorWhite) {
 		this.position = _position;

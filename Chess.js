@@ -48,8 +48,11 @@ let oPawns = [];
 function cambiarTurno(){
 	isWhitesTurn = !isWhitesTurn;
 	turno.innerHTML= "Es El Turno De Las: <span>" + (isWhitesTurn ? "Blancas </span>" : "Negras </span>");
-	if(isWhitesTurn) { 
+	if(isWhitesTurn) {
+		turno.setAttribute("class","tableroWhite");
 		numeroDeTurno++;
+	}else{
+		turno.setAttribute("class","tableroBlack");
 	}
 }
 //-------------------------------------------Helpers-----------------------------------------------
@@ -196,7 +199,7 @@ let renderExtraCol = (i, divRow, isLeft) => {
 	divRow.append(divRowId);
 }
 //-------------------------------------------------------------------------------------------------
-turno.classList.add("tablero");
+turno.setAttribute("class","tableroWhite");
 turno.innerHTML= "Es El Turno De Las: <span>" + (isWhitesTurn ? "Blancas </span>" : "Negras </span>");
 
 renderExtraRow(false);
@@ -294,13 +297,16 @@ let clickHandler = (lista,elemento) => {
 	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
 	removeOthers(elemento.id);
 	removeEventsPawns(elemento.id);
-	//removeEvents_Knights();
+	removeEvents_Knights();
+	removeEvents_Bishops();
+
 	let listaCero = document.getElementById(lista[0]);
 
 	if (listaCero===null) { 
 		setFalse();
 		addEventsPawns(elemento.dataset.pieceColor);
-		//addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Bishops(elemento.dataset.pieceColor);
 		return;
 	}
 
@@ -314,7 +320,8 @@ let clickHandler = (lista,elemento) => {
 	} else {
 		setFalse();
 		addEventsPawns(elemento.dataset.pieceColor);
-		//addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Bishops(elemento.dataset.pieceColor);
 		lista.forEach( (item,i) => {
 			let element = document.getElementById(item);
 			element.removeEventListener("click", boundedHandlerMove[i]);
@@ -368,12 +375,13 @@ let handlerMove = (pos1,pos2,lista) => {
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
-		    //boundedClickHandler_Knight.splice(index, 1);
+		    boundedClickHandler_Knight.splice(index, 1);
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
+		    boundedClickHandler_Bishop.splice(index, 1);
 		    break;
 			}
 		  case "Rook": {
@@ -418,6 +426,8 @@ let handlerMove = (pos1,pos2,lista) => {
 	
 	//Update bounded function
 	boundCH();
+	//Update bishops list in case the pawn movement 'unlocks' a diagonal
+	boundCH_Bishop();
 	
 	//Remove yellow events
 	lista.forEach( el => document.getElementById(el).classList.remove('yellow') );
@@ -429,10 +439,12 @@ let handlerMove = (pos1,pos2,lista) => {
 	//Add all enemy events
 	if (div1Color === "White") {
 		addEventsPawns("Black");
-		//addEvents_Knights("Black");
+		addEvents_Knights("Black");
+		addEvents_Bishops("Black");
 	} else if (div1Color === "Black") {
 		addEventsPawns("White");
-		//addEvents_Knights("White");
+		addEvents_Knights("White");
+		addEvents_Bishops("White");
 	}
 }
 
@@ -446,7 +458,7 @@ function boundCH(){
 boundCH();
 addEventsPawns("White");
 //----------------------------------------Eventos-Caballo------------------------------------------
-/*var boundedClickHandler_Knight = [];
+var boundedClickHandler_Knight = [];
 var boundedHandlerMove_Knight = [];
 
 function removeEvents_Knights(position_Kn="All"){
@@ -455,14 +467,14 @@ function removeEvents_Knights(position_Kn="All"){
 		let element = document.getElementById(oKnights[i].position);
 		if (oKnights[i].position!=position_Kn){
 			element.removeEventListener("click", boundedClickHandler_Knight[i]);
-			console.log("Removido");	
+			console.log("Removido1");	
 		}
 	}
 	//Remove all Knight Events
 	if (position_Kn === "All") {
-		for (let i = 0; i < oPawns.length; i++) {
-			let element = document.getElementById(oPawns[i].position);
-			element.removeEventListener("click", boundedClickHandler[i]);
+		for (let i = 0; i < oKnights.length; i++) {
+			let element = document.getElementById(oKnights[i].position);
+			element.removeEventListener("click", boundedClickHandler_Knight[i]);
 			console.log("Removidos todos los caballos");
 		}
 	}
@@ -473,6 +485,7 @@ function addEvents_Knights(color_Kn){
 		let element = document.getElementById(oKnights[i].position);
 		if (oKnights[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_Knight[i]);
+			console.log("Agregado")
 		}
 	}
 }
@@ -481,12 +494,14 @@ let clickHandler_Knight = (lista,elemento) => {
 	removeOthers(elemento.id);
 	removeEventsPawns();
 	removeEvents_Knights(elemento.id);
+	removeEvents_Bishops();
 
 	let listaCero = document.getElementById(lista[0]);
 	if (listaCero===null) { 
 		setFalse();
 		addEventsPawns(elemento.dataset.pieceColor);
-		addEvents_Knights();
+		addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Bishops(elemento.dataset.pieceColor);
 		return;
 	}
 
@@ -501,6 +516,7 @@ let clickHandler_Knight = (lista,elemento) => {
 		setFalse();
 		addEventsPawns(elemento.dataset.pieceColor);
 		addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Bishops(elemento.dataset.pieceColor);
 		lista.forEach( (item,i) => {
 			let element = document.getElementById(item);
 			element.removeEventListener("click", boundedHandlerMove_Knight[i]);
@@ -560,6 +576,7 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
+		    boundedClickHandler_Bishop.splice(index, 1);
 		    break;
 			}
 		  case "Rook": {
@@ -604,6 +621,8 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 	
 	//Update bounded function
 	boundCH_Knight();
+	//Update bishops list in case the pawn movement 'unlocks' a diagonal
+	boundCH_Bishop();
 	
 	//Remove yellow events
 	lista.forEach( el => document.getElementById(el).classList.remove('yellow') );
@@ -616,9 +635,11 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 	if (div1Color === "White") {
 		addEventsPawns("Black");
 		addEvents_Knights("Black");
+		addEvents_Bishops("Black");
 	} else if (div1Color === "Black") {
 		addEventsPawns("White");
 		addEvents_Knights("White");
+		addEvents_Bishops("White");
 	}
 }
 
@@ -627,10 +648,204 @@ function boundCH_Knight(){
 		let element = document.getElementById(oKnights[i].position);
 		let lista = oKnights[i].computeTarget();
 		boundedClickHandler_Knight[i] = clickHandler_Knight.bind(null,lista,element);
-		//element.addEventListener("click", boundedClickHandler_Knight[i]);
 	}
 }
 
 boundCH_Knight();
-addEvents_Knights("White");*/
+addEvents_Knights("White");
 //----------------------------------------Eventos-Alfil------------------------------------------
+
+var boundedClickHandler_Bishop = [];
+var boundedHandlerMove_Bishop = [];
+
+function removeEvents_Bishops(position_Kn="All"){
+	//Remove events except the indicated one
+	for (let i = 0; i < oBishops.length; i++) {
+		let element = document.getElementById(oBishops[i].position);
+		if (oBishops[i].position!=position_Kn){
+			element.removeEventListener("click", boundedClickHandler_Bishop[i]);
+			console.log("RemovidoAlfil1");	
+		}
+	}
+	//Remove all Bishop Events
+	if (position_Kn === "All") {
+		for (let i = 0; i < oBishops.length; i++) {
+			let element = document.getElementById(oBishops[i].position);
+			element.removeEventListener("click", boundedClickHandler_Bishop[i]);
+			console.log("Removidos todos los alfiles");
+		}
+	}
+}
+function addEvents_Bishops(color_Kn){
+	//Add events
+	for (let i = 0; i < oBishops.length; i++) {
+		let element = document.getElementById(oBishops[i].position);
+		if (oBishops[i].color === color_Kn){
+			element.addEventListener("click", boundedClickHandler_Bishop[i]);
+			console.log("Agregados Alfiles")
+		}
+	}
+}
+let clickHandler_Bishop = (lista,elemento) => {
+	lista.forEach( el => document.getElementById(el).classList.toggle('yellow') );
+	removeOthers(elemento.id);
+	removeEventsPawns();
+	removeEvents_Knights();
+	removeEvents_Bishops(elemento.id);
+
+	console.log(lista)
+	let listaCero = document.getElementById(lista[0]);
+	if (listaCero===null) { 
+		setFalse();
+		addEventsPawns(elemento.dataset.pieceColor);
+		addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Bishops(elemento.dataset.pieceColor);
+		return;
+	}
+
+	if( listaCero.classList.contains('yellow') ) {
+		console.log("Si hay amarillo");
+		lista.forEach( (item,i) => {
+			boundedHandlerMove_Bishop[i] = handlerMove_Bishop.bind(null,elemento.id,item,lista);
+			let element = document.getElementById(item);
+			element.addEventListener("click", boundedHandlerMove_Bishop[i]);
+		});
+	} else {
+		setFalse();
+		addEventsPawns(elemento.dataset.pieceColor);
+		addEvents_Knights(elemento.dataset.pieceColor);
+		addEvents_Bishops(elemento.dataset.pieceColor);
+		lista.forEach( (item,i) => {
+			let element = document.getElementById(item);
+			element.removeEventListener("click", boundedHandlerMove_Bishop[i]);
+		});
+	}
+}
+
+let handlerMove_Bishop = (pos1,pos2,lista) => {
+	let div1 = document.getElementById(pos1);
+	let div2 = document.getElementById(pos2);
+	let areDiv1Div2Different = div1.dataset.pieceColor !== div2.dataset.pieceColor;
+	let div1Color = div1.dataset.pieceColor;
+
+	//Move Piece
+	if(div2.dataset.isOccupied ==="false"){
+	
+		div1.innerHTML = "";
+		div1.dataset.piece = "";
+		div1.dataset.pieceColor = "";
+		div1.dataset.isOccupied = "false";
+
+		if (div1Color === "White") {
+			div2.innerHTML = whiteBishop;
+			div2.dataset.piece = "Bishop";
+			div2.dataset.pieceColor = "White";
+			div2.dataset.isOccupied = "true";
+			console.log("Mover: pieza blanca");
+		} else {
+			div2.innerHTML = blackBishop;
+			div2.dataset.piece = "Bishop";
+			div2.dataset.pieceColor = "Black";
+			div2.dataset.isOccupied = "true";
+			console.log("Mover: pieza negra");
+		}
+	//Capture Rival Piece 				
+	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
+		
+		div1.innerHTML = "";
+		div1.dataset.piece = "";
+		div1.dataset.pieceColor = "";
+		div1.dataset.isOccupied = "false";
+
+		let capturedPiece = div2.dataset.piece;
+		switch (capturedPiece) {
+		  case "Pawn": {
+		  	let index = oPawns.findIndex( x => x.position===div2.id);
+		    oPawns.splice(index, 1);
+		    boundedClickHandler.splice(index, 1);
+		    break;
+			}
+		  case "Knight": {
+		    let index = oKnights.findIndex( x => x.position===div2.id);
+		    oKnights.splice(index, 1);
+		    boundedClickHandler_Knight.splice(index, 1);
+		    break;
+			}
+		  case "Bishop": {
+		  	let index = oBishops.findIndex( x => x.position===div2.id);
+		    oBishops.splice(index, 1);
+		    boundedClickHandler_Bishop.splice(index, 1);
+		    break;
+			}
+		  case "Rook": {
+		    let index = oRooks.findIndex( x => x.position===div2.id);
+		    oRooks.splice(index, 1);
+		    break;
+			}
+		  case "Queen": {
+		    let index = oQueens.findIndex( x => x.position===div2.id);
+		    oQueens.splice(index, 1);
+		    break;
+			}
+		  default: {
+		    console.log("Sin pieza capturada");
+		    break;
+			}
+		}
+		
+		if (div1Color === "White") {
+			div2.innerHTML = whiteBishop;
+			div2.dataset.piece = "Bishop";
+			div2.dataset.pieceColor = "White";
+			div2.dataset.isOccupied = "true";
+			console.log("Captura: pieza blanca");
+		} else if (div1Color === "Black") {
+			div2.innerHTML = blackBishop;
+			div2.dataset.piece = "Bishop";
+			div2.dataset.pieceColor = "Black";
+			div2.dataset.isOccupied = "true";
+			console.log("Captura: pieza negra");
+		}
+	}
+
+	//Update sign
+	cambiarTurno();
+	//Update position
+	let k = oBishops.findIndex( x => x.position===pos1);
+	oBishops[k].position = pos2;
+	
+	//Remove pos1 event
+	div1.removeEventListener("click", boundedClickHandler_Bishop[k]);
+	
+	//Update bounded function
+	boundCH_Bishop();
+	
+	//Remove yellow events
+	lista.forEach( el => document.getElementById(el).classList.remove('yellow') );
+	lista.forEach( (el,i)=>{
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove_Bishop[i]);
+	});
+
+	//Add all enemy events
+	if (div1Color === "White") {
+		addEventsPawns("Black");
+		addEvents_Knights("Black");
+		addEvents_Bishops("Black");
+	} else if (div1Color === "Black") {
+		addEventsPawns("White");
+		addEvents_Knights("White");
+		addEvents_Bishops("White");
+	}
+}
+
+function boundCH_Bishop(){
+	for (let i = 0; i < oBishops.length; i++) {
+		let element = document.getElementById(oBishops[i].position);
+		let lista = oBishops[i].computeTarget();
+		boundedClickHandler_Bishop[i] = clickHandler_Bishop.bind(null,lista,element);
+	}
+}
+
+boundCH_Bishop();
+addEvents_Bishops("White");

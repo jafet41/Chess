@@ -176,13 +176,20 @@ export class Knight{
 		}
 	}
 
-	get col() {	return this._col;	}
-	get row() {	return this._row;	}
+	get col()  {	return this._col;	}
+	get colN() { 	return this._colN;	}
+	get row()  {	return this._row;	}
 	get position() { return this._position;	}
 
-	set col(newCol) {	this._col = newCol;	}
-	set row(newRow) {	this._row = newRow;	}
-	set position(newPos) {	this._position = newPos; }
+	set col(newCol)	  {	this._col = newCol;	  }
+	set colN(newColN) {	this._colN = newColN; }
+	set row(newRow)   {	this._row = newRow;	  }
+	set position(newPos) {	
+		this._position = newPos;
+		this._col = newPos[0];	
+		this._colN = columns.indexOf(newPos[0]) + 1;
+		this._row = newPos[1];
+	}
 
 
 	computeTarget(){
@@ -191,28 +198,28 @@ export class Knight{
 			if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+2 > 0 && parseInt(this.row)+2 < 9) { 
 				let upper1 = "" + columns[this.colN-2] + (parseInt(this.row) + 2);
 				let u1 = document.getElementById(upper1);
-				if(u1.dataset.isOccupied === "false"){
+				if(u1.dataset.isOccupied === "false" || u1.dataset.pieceColor === this.enemyColor){
 					validMoves.push ( upper1 );
 				}
 			}
 			if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+2 > 0 && parseInt(this.row)+2 < 9) { 
 				let upper2 = "" + columns[this.colN-0] + (parseInt(this.row) + 2);
 				let u2 = document.getElementById(upper2);
-				if(u2.dataset.isOccupied === "false"){
+				if(u2.dataset.isOccupied === "false" || u2.dataset.pieceColor === this.enemyColor){
 					validMoves.push ( upper2 );
 				}
 			}
 			if (this.colN-2 > 0 && this.colN-2 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
 				let upper3 = "" + columns[this.colN-3] + (parseInt(this.row) + 1);
 				let u3 = document.getElementById(upper3);
-				if(u3.dataset.isOccupied === "false"){
+				if(u3.dataset.isOccupied === "false" || u3.dataset.pieceColor === this.enemyColor){
 					validMoves.push ( upper3 );
 				}
 			}
 			if (this.colN+2 > 0 && this.colN+2 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) {
 				let upper4 = "" + columns[this.colN+1] + (parseInt(this.row) + 1);
 				let u4 = document.getElementById(upper4);
-				if (u4.dataset.isOccupied === "false") {
+				if (u4.dataset.isOccupied === "false" || u4.dataset.pieceColor === this.enemyColor) {
 					validMoves.push ( upper4 );
 				}
 			}
@@ -220,28 +227,28 @@ export class Knight{
 			if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-2 > 0 && parseInt(this.row)-2 < 9) { 
 				let lower1 =  "" + columns[this.colN-2] + (parseInt(this.row) - 2);
 				let l1 = document.getElementById(lower1);
-				if (l1.dataset.isOccupied === "false") {
+				if (l1.dataset.isOccupied === "false" || l1.dataset.pieceColor=== this.enemyColor) {
 					validMoves.push ( lower1 );
 				}
 			}
 			if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-2 > 0 && parseInt(this.row)-2 < 9) { 
 				let lower2 =  "" + columns[this.colN-0] + (parseInt(this.row) - 2);
 				let l2 = document.getElementById(lower2);
-				if (l2.dataset.isOccupied === "false") {
+				if (l2.dataset.isOccupied === "false" || l2.dataset.pieceColor=== this.enemyColor) {
 					validMoves.push ( lower2 );
 				}
 			}
 			if (this.colN-2 > 0 && this.colN-2 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
 				let lower3 =  "" + columns[this.colN-3] + (parseInt(this.row) - 1);
 				let l3 = document.getElementById(lower3);
-				if (l3.dataset.isOccupied === "false") {
+				if (l3.dataset.isOccupied === "false" || l3.dataset.pieceColor=== this.enemyColor) {
 					validMoves.push ( lower3 );
 				}
 			}
 			if (this.colN+2 > 0 && this.colN+2 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) {
 				let lower4 =  "" + columns[this.colN+1] + (parseInt(this.row) - 1);
 				let l4 = document.getElementById(lower4);
-				if (l4.dataset.isOccupied === "false") {
+				if (l4.dataset.isOccupied === "false" || l4.dataset.pieceColor=== this.enemyColor) {
 					validMoves.push( lower4 );
 				}
 			}
@@ -250,6 +257,7 @@ export class Knight{
 }
 //---------------------------------------------Alfil-----------------------------------------------
 export class Bishop{
+
 	constructor (_position,_isColorWhite) {
 		this.position = _position;
 		this.col = _position[0];
@@ -264,6 +272,106 @@ export class Bishop{
 			this.direction = directions[1];
 		}
 	}
+
+	get col()  {	return this._col;	}
+	get colN() { 	return this._colN;	}
+	get row()  {	return this._row;	}
+	get position() { return this._position;	}
+
+	set col(newCol)	  {	this._col = newCol;	  }
+	set colN(newColN) {	this._colN = newColN; }
+	set row(newRow)   {	this._row = newRow;	  }
+	set position(newPos) {	
+		this._position = newPos;
+		this._col = newPos[0];	
+		this._colN = columns.indexOf(newPos[0]) + 1;
+		this._row = newPos[1];
+	}
+
+
+	computeTarget(){
+		let validMoves = [];
+
+		//Upper Left Diagonal
+		let i = this.row;
+		let j = this.colN;
+		i++;
+		j--;
+		while (i<9 && j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i++;
+			j--;
+		}
+
+		//Upper Right Diagonal
+		i = this.row;
+		j = this.colN;
+		i++;
+		j++;
+		while (i<9 && j<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i++;
+			j++;
+		}
+
+		//Lower Left Diagonal
+		i = this.row; 
+		j = this.colN;
+		i--;
+		j--;
+		while (i>0 && j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else{
+				break;
+			}
+			i--;
+			j--;
+		}
+
+		//Lower Right Diagonal
+		i = this.row;
+		j = this.colN;
+		i--;
+		j++;
+		while (i>0 && j<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+			} else {
+				break;
+			}
+			i--;
+			j++;
+		}
+
+		return validMoves;
+	}
+
 }
 //---------------------------------------------Reina-----------------------------------------------
 export class Queen{

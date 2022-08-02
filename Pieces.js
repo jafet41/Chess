@@ -19,7 +19,6 @@ export class Pawn{
 			this.enemyColor = colors[0];
 			this.direction = directions[1];
 		}
-		this.movesHistory.push(_position);
 		this.hasBeenMoved = false;
 	}
 
@@ -42,7 +41,7 @@ export class Pawn{
 	}
 
 
-	computeTarget(){
+	computeTarget(oPawns,lastMovedPiece){
 		if(this.color == "White" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
 			let computedTiles = [];
 			if (parseInt(this.row) === 8) {
@@ -74,6 +73,44 @@ export class Pawn{
 					computedTiles.push(diagonal2);
 				}
 			}
+			//Captura al paso
+			//Izquerda
+			if (parseInt(this.row) === 5 && this.colN !== 1 ){
+				let diagonalLeft="" + columns[this.colN-2] + (parseInt(this.row) + 1);
+				let dL=document.getElementById(diagonalLeft);
+				let left="" + columns[this.colN-2] + (parseInt(this.row));
+				let l=document.getElementById(left);
+		 		if (l.dataset.piece === "Pawn" && l.dataset.pieceColor==="Black"){
+		 			let n = oPawns.findIndex( x => x.position===left);
+		 			let origin = "" + columns[this.colN-2] + (parseInt(this.row)+2);
+		 			if (oPawns[n].movesHistory[0]===origin && 
+		 				oPawns[n].movesHistory[1]===left && 
+		 				lastMovedPiece.piece==="Pawn" &&
+		 				lastMovedPiece.color==="Black" &&
+		 				lastMovedPiece.initialPosition===origin) {
+		 				computedTiles.push( diagonalLeft );
+		 			}
+				}
+			}
+			//Derecha
+			if (parseInt(this.row) === 5 && this.colN !== 8 ){
+				let diagonalRight="" + columns[this.colN] + (parseInt(this.row) + 1);
+				let dR=document.getElementById(diagonalRight);
+				let right="" + columns[this.colN] + (parseInt(this.row));
+				let r=document.getElementById(right);
+		 		if (r.dataset.piece === "Pawn" && r.dataset.pieceColor==="Black"){
+		 			let n = oPawns.findIndex( x => x.position===right);
+		 			let origin = "" + columns[this.colN] + (parseInt(this.row)+2);
+		 			if (oPawns[n].movesHistory[0]===origin && 
+		 				oPawns[n].movesHistory[1]===right && 
+		 				lastMovedPiece.piece==="Pawn" &&
+		 				lastMovedPiece.color==="Black" &&
+		 				lastMovedPiece.initialPosition===origin) {
+		 				computedTiles.push( diagonalRight );
+		 			}
+				}
+			}
+			console.log(computedTiles);
 			return computedTiles;
 
 		} else {
@@ -108,38 +145,51 @@ export class Pawn{
 						computedTiles.push(diagonal2);
 					}
 				}
+				//Captura al paso
+				//Izquerda
+				if (parseInt(this.row) === 4 && this.colN !== 1 ){
+					let diagonalLeft="" + columns[this.colN-2] + (parseInt(this.row) - 1);
+					let dL=document.getElementById(diagonalLeft);
+					let left="" + columns[this.colN-2] + (parseInt(this.row));
+					let l=document.getElementById(left);
+			 		if (l.dataset.piece === "Pawn" && l.dataset.pieceColor==="White"){
+			 			let n = oPawns.findIndex( x => x.position===left);
+			 			let origin = "" + columns[this.colN-2] + (parseInt(this.row)-2);
+			 			if (oPawns[n].movesHistory[0]===origin && 
+			 				oPawns[n].movesHistory[1]===left && 
+		 					lastMovedPiece.piece==="Pawn" &&
+		 					lastMovedPiece.color==="White" &&
+		 					lastMovedPiece.initialPosition===origin) {
+			 				computedTiles.push( diagonalLeft );
+			 			}
+					}
+				}
+				//Derecha
+				if (parseInt(this.row) === 4 && this.colN !== 8 ){
+					let diagonalRight="" + columns[this.colN] + (parseInt(this.row) - 1);
+					let dR=document.getElementById(diagonalRight);
+					let right="" + columns[this.colN] + (parseInt(this.row));
+					let r=document.getElementById(right);
+			 		if (r.dataset.piece === "Pawn" && r.dataset.pieceColor==="White"){
+			 			let n = oPawns.findIndex( x => x.position===right);
+			 			let origin = "" + columns[this.colN] + (parseInt(this.row)-2);
+			 			if (oPawns[n].movesHistory[0]===origin && 
+			 				oPawns[n].movesHistory[1]===right && 
+		 					lastMovedPiece.piece==="Pawn" &&
+		 					lastMovedPiece.color==="White" &&
+		 					lastMovedPiece.initialPosition===origin) {
+			 				computedTiles.push( diagonalRight );
+			 			}
+					}
+				}
+				console.log(computedTiles);
 				return computedTiles;
 			}
 		}
 	}
 
-	capturarAlPaso() {
-		if(direction==="positive") {
-			if( (enemyOriginCol===(myCol+1) || enemyOriginCol===(myCol-1)) &&  enemyOriginRow===7  ){
-				this.row++;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			} 
-		} else {
-			if( (enemyOriginCol===(myCol+1) || enemyOriginCol===(myCol-1)) &&  enemyOriginRow===2  ){
-				this.row--;
-				if(toTheRight)
-					this.col++;
-				else
-					this.col--;
-			} else{
-				console.log("Invalid move");
-			}			
-		}
-		this.hasBeenMoved = true;
-	}
  }
-// let myPawn1 = new Pawn("D2",true);
-// console.log(myPawn1);
+
 //--------------------------------------------Torre------------------------------------------------
 export class Rook{
 	constructor (_position,_isColorWhite) {
@@ -156,6 +206,100 @@ export class Rook{
 			this.direction = directions[1];
 		}
 		this.hasBeenMoved = false;
+	}
+
+	get col()  {	return this._col;	}
+	get colN() { 	return this._colN;	}
+	get row()  {	return this._row;	}
+	get position() { return this._position;	}
+
+	set col(newCol)	  {	this._col = newCol;	  }
+	set colN(newColN) {	this._colN = newColN; }
+	set row(newRow)   {	this._row = newRow;	  }
+	set position(newPos) {	
+		this._position = newPos;
+		this._col = newPos[0];	
+		this._colN = columns.indexOf(newPos[0]) + 1;
+		this._row = newPos[1];
+		this.hasBeenMoved = true;
+	}
+
+	computeTarget(){
+		let validMoves = [];
+
+		//Up
+		let i = this.row;
+		let j = this.colN;
+		i++;
+		while (i<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i++;
+		}
+
+		//Right
+		i = this.row;
+		j = this.colN;
+		j++;
+		while (j<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			j++;
+		}
+
+		//Down
+		i = this.row; 
+		j = this.colN;
+		i--;
+		while (i>0 && j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else{
+				break;
+			}
+			i--;
+		}
+
+		//Left
+		i = this.row;
+		j = this.colN;
+		j--;
+		while (j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			j--;
+		}
+
+		return validMoves;
 	}
 }
 //--------------------------------------------Caballo----------------------------------------------
@@ -362,6 +506,9 @@ export class Bishop{
 			let n=document.getElementById(next);
 			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
 				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
 			} else {
 				break;
 			}
@@ -389,6 +536,181 @@ export class Queen{
 			this.direction = directions[1];
 		}
 	}
+
+	get col()  {	return this._col;	}
+	get colN() { 	return this._colN;	}
+	get row()  {	return this._row;	}
+	get position() { return this._position;	}
+
+	set col(newCol)	  {	this._col = newCol;	  }
+	set colN(newColN) {	this._colN = newColN; }
+	set row(newRow)   {	this._row = newRow;	  }
+	set position(newPos) {	
+		this._position = newPos;
+		this._col = newPos[0];	
+		this._colN = columns.indexOf(newPos[0]) + 1;
+		this._row = newPos[1];
+	}
+
+	computeTarget(){
+		let validMoves = [];
+
+		//Upper Left Diagonal
+		let i = this.row;
+		let j = this.colN;
+		i++;
+		j--;
+		while (i<9 && j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i++;
+			j--;
+		}
+
+		//Upper Right Diagonal
+		i = this.row;
+		j = this.colN;
+		i++;
+		j++;
+		while (i<9 && j<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i++;
+			j++;
+		}
+
+		//Lower Left Diagonal
+		i = this.row; 
+		j = this.colN;
+		i--;
+		j--;
+		while (i>0 && j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else{
+				break;
+			}
+			i--;
+			j--;
+		}
+
+		//Lower Right Diagonal
+		i = this.row;
+		j = this.colN;
+		i--;
+		j++;
+		while (i>0 && j<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i--;
+			j++;
+		}
+
+
+
+		//Up
+		i = this.row;
+		j = this.colN;
+		i++;
+		while (i<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			i++;
+		}
+
+		//Right
+		i = this.row;
+		j = this.colN;
+		j++;
+		while (j<9) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			j++;
+		}
+
+		//Down
+		i = this.row; 
+		j = this.colN;
+		i--;
+		while (i>0 && j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else{
+				break;
+			}
+			i--;
+		}
+
+		//Left
+		i = this.row;
+		j = this.colN;
+		j--;
+		while (j>0) {
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
+				validMoves.push( next );
+				if(n.dataset.isOccupied === "true"){
+					break;
+				}
+			} else {
+				break;
+			}
+			j--;
+		}
+
+		return validMoves;
+	}
 }
 //----------------------------------------------Rey------------------------------------------------
 export class King{
@@ -406,5 +728,94 @@ export class King{
 			this.direction = directions[1];
 		}
 		this.hasBeenMoved = false;
+	}
+
+	get col()  {	return this._col;	}
+	get colN() { 	return this._colN;	}
+	get row()  {	return this._row;	}
+	get position() { return this._position;	}
+
+	set col(newCol)	  {	this._col = newCol;	  }
+	set colN(newColN) {	this._colN = newColN; }
+	set row(newRow)   {	this._row = newRow;	  }
+	set position(newPos) {	
+		this._position = newPos;
+		this._col = newPos[0];	
+		this._colN = columns.indexOf(newPos[0]) + 1;
+		this._row = newPos[1];
+	}
+
+	computeTarget(){
+		let validMoves = [];
+
+		//Up-Left
+		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
+			let upLeft = "" + columns[this.colN-2] + (parseInt(this.row) + 1);
+			let uL = document.getElementById(upLeft);
+			if(uL.dataset.isOccupied === "false" || uL.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( upLeft );
+			}
+		}
+		//Up
+		if (this.colN > 0 && this.colN < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
+			let up = "" + columns[this.colN-1] + (parseInt(this.row) + 1);
+			let u = document.getElementById(up);
+			if(u.dataset.isOccupied === "false" || u.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( up );
+			}
+		}
+		//Up-Right
+		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
+			let upRight = "" + columns[this.colN] + (parseInt(this.row) + 1);
+			let uR = document.getElementById(upRight);
+			if(uR.dataset.isOccupied === "false" || uR.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( upRight );
+			}
+		}
+
+
+		//Left
+		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9) { 
+			let left = "" + columns[this.colN-2] + (parseInt(this.row));
+			let l = document.getElementById(left);
+			if(l.dataset.isOccupied === "false" || l.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( left );
+			}
+		}
+		//Right
+		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9) { 
+			let right = "" + columns[this.colN] + (parseInt(this.row));
+			let r = document.getElementById(right);
+			if(r.dataset.isOccupied === "false" || r.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( right );
+			}
+		}
+
+
+		//Down-Left
+		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
+			let downLeft = "" + columns[this.colN-2] + (parseInt(this.row) - 1);
+			let dL = document.getElementById(downLeft);
+			if(dL.dataset.isOccupied === "false" || dL.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( downLeft );
+			}
+		}
+		//Down
+		if (this.colN > 0 && this.colN < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
+			let down = "" + columns[this.colN-1] + (parseInt(this.row) - 1);
+			let d = document.getElementById(down);
+			if(d.dataset.isOccupied === "false" || d.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( down );
+			}
+		}
+		//Down-Right
+		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
+			let downRight = "" + columns[this.colN] + (parseInt(this.row) - 1);
+			let dR = document.getElementById(downRight);
+			if(dR.dataset.isOccupied === "false" || dR.dataset.pieceColor === this.enemyColor){
+				validMoves.push ( downRight );
+			}
+		}
+		return validMoves;
 	}
 }

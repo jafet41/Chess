@@ -14,9 +14,101 @@
 	
 </head>
 <body>
-	<h1 style="color: whitesmoke;">Tablero De Ajedrez</h1>
+	<h1 style="color: whitesmoke;">Ajedrez Bandicoot</h1>
 	<section id="turno"></section>
 	<section id="tablero"></section>
-	
+	<button id="botonOpen" >Open Modal1</button>
+
+	<div id="modal" class="modal">
+		<div class="modal-header">
+			<div class="title">Promoción del peón</div>
+		</div>
+		
+		<div class="modal-body">
+			<form>
+                <fieldset>
+                    <legend class="leyenda">¿Qué pieza deseás?</legend>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="reina" value="Queen" checked>
+                        <label for="reina">
+                        	Reina
+                        	<img src="Pieces/Queen-W.svg" class="imageSVG" /> 
+                        </label>
+                        
+                    </p>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="torre" value="Rook">
+                        <label for="torre">
+                        	Torre
+                        	<img src="Pieces/Tower-W.svg" class="imageSVG" />
+                        </label>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="caballo" value="Knight">
+                        <label for="caballo">
+                        	Caballo
+                        	<img src="Pieces/Knight-W.svg" class="imageSVG" />
+                    	</label>
+                    </p>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="alfil" value="Bishop">
+                        <label for="alfil">
+                        	Alfil
+                        	<img src="Pieces/Bishop-W.svg" class="imageSVG" />
+                    	</label>
+                    </p>
+                    <p class="parrafo">
+                    	<button type="button" id="aceptar">Aceptar</button>
+                    </p>
+                </fieldset>
+            </form>
+		</div>		
+	</div>
+
+	<div id="modal2" class="modal">
+		<div class="modal-header">
+			<div class="title">Promoción del peón</div>
+		</div>
+		
+		<div class="modal-body">
+			<form>
+                <fieldset>
+                    <legend class="leyenda">¿Qué pieza deseás?</legend>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="reina" value="Queen" checked>
+                        <label for="reina">
+                        	Reina
+                        	<img src="Pieces/Queen-B.svg" class="imageSVG" /> 
+                        </label>
+                        
+                    </p>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="torre" value="Rook">
+                        <label for="torre">
+                        	Torre
+                        	<img src="Pieces/Tower-B.svg" class="imageSVG" />
+                        </label>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="caballo" value="Knight">
+                        <label for="caballo">
+                        	Caballo
+                        	<img src="Pieces/Knight-B.svg" class="imageSVG" />
+                    	</label>
+                    </p>
+                    <p class="parrafo">
+                        <input type="radio" name="pieza" id="alfil" value="Bishop">
+                        <label for="alfil">
+                        	Alfil
+                        	<img src="Pieces/Bishop-B.svg" class="imageSVG" />
+                    	</label>
+                    </p>
+                    <p class="parrafo">
+                    	<button type="button" id="aceptar2">Aceptar</button>
+                    </p>
+                </fieldset>
+            </form>
+		</div>		
+	</div>
+
+	<div id="overlay"></div>
 </body>
 </html>

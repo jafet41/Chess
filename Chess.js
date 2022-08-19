@@ -4,7 +4,7 @@ const body = document.body;
 const tablero = document.getElementById('tablero');
 const turno = document.getElementById('turno');
 
-const openButton = document.getElementById('botonOpen');
+//const openButton = document.getElementById('botonOpen');
 const modal1 = document.getElementById('modal');
 const modal2 = document.getElementById('modal2')
 const overlay = document.getElementById('overlay');
@@ -45,10 +45,22 @@ let lastMovedPiece = {
 	finalPosition: ""
 }
 
+var piezaSeleccionada = "";
+var piezaSeleccionada2 = "";
+var _promote;
+
 let isActiveDivClear = true;
 let enPassantFlagExists = false;
 let isWhitesTurn = true;
 let numeroDeTurno = 1;
+
+var allPossibleMovesW = [];
+var allPossibleMovesB = [];
+var supportedBoxesW = [];
+var supportedBoxesB = [];
+
+var whitePieces = [];
+var blackPieces = [];
 
 //Arrays of objects
 let oRooks = [];
@@ -67,7 +79,9 @@ function cambiarTurno(){
 	}else{
 		turno.setAttribute("class","tableroBlack");
 	}
-	console.log("Numero de turno es: " + numeroDeTurno);
+	//console.log("Numero de turno es: " + numeroDeTurno);
+	//console.log(oKings[1].sorroundings);
+	//console.log(supportedBoxesB)
 }
 //-------------------------------------------Helpers-----------------------------------------------
 //Setting initial position
@@ -241,20 +255,20 @@ for (var i = 0; i < 8; i++) {
 
 		if( 8-i===1 || 8-i===2 || 8-i===7 || 8-i===8 ){
 			div.addEventListener("click", () => {
-  				console.log("Estas en: " + div.getAttribute("Id") );
+  				//console.log("Estas en: " + div.getAttribute("Id") );
 			}) 
 		}
 	}
 	renderExtraCol(i, divRow, false);
 }
 renderExtraRow(true);
-//------------------------------------------Instancias---------------------------------------------
-console.log(oQueens);
-console.log(oPawns);
-console.table(activeDiv);
+//=============================Separar Instancias y algunos calculos===============================
+getPiecesByColor()
+allPossibleMoves_W()
+allPossibleMoves_B()
+getSupportedBoxes()
 //=========================================Eventos=================================================
 const occupiedDivs = Array.from(document.querySelectorAll('[data-is-occupied="true"]'));
-console.log(occupiedDivs);
 
 let letrero = document.querySelector('span#turno.tablero');
 function changeTurn() {
@@ -284,7 +298,7 @@ function removeEventsPawns(position="All"){
 		let element = document.getElementById(oPawns[i].position);
 		if (oPawns[i].position!=position){
 			element.removeEventListener("click", boundedClickHandler[i]);
-			console.log("Removido");	
+			//console.log("Removido");	
 		}
 	}
 	//Remove all Pawn Events
@@ -292,7 +306,7 @@ function removeEventsPawns(position="All"){
 		for (let i = 0; i < oPawns.length; i++) {
 			let element = document.getElementById(oPawns[i].position);
 			element.removeEventListener("click", boundedClickHandler[i]);
-			console.log("Removidos todos los peones");
+			//console.log("Removidos todos los peones");
 		}
 	}
 }
@@ -303,7 +317,7 @@ function addEventsPawns(color){
 			let element = document.getElementById(oPawns[i].position);
 			if (oPawns[i].color === color){
 				element.addEventListener("click", boundedClickHandler[i]);
-				console.log("Agregados Peones");
+				//console.log("Agregados Peones");
 			}
 	}
 }
@@ -333,7 +347,7 @@ let clickHandler = (lista,elemento) => {
 	}
 
 	if( listaCero.classList.contains("gray") ) {
-		console.log("Si hay amarillo");
+		//console.log("Si hay gris");
 		lista.forEach( (item,i) => {
 			boundedHandlerMove[i] = handlerMove.bind(null,elemento.id,item,lista);
 			let element = document.getElementById(item);
@@ -354,7 +368,7 @@ let clickHandler = (lista,elemento) => {
 	}
 }
 
-let handlerMove = (pos1,pos2,lista) => {
+let handlerMove = async (pos1,pos2,lista) => {
 	let div1 = document.getElementById(pos1);
 	let div2 = document.getElementById(pos2);
 	let areDiv1Div2Different = div1.dataset.pieceColor !== div2.dataset.pieceColor;
@@ -373,7 +387,6 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Pawn";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza blanca");
 			
 			//EnPassant
 			let posEP="" + pos2[0] + (parseInt(pos2[1])-1);
@@ -397,7 +410,6 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Pawn";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza negra");
 
 			//EnPassant
 			let posEP="" + pos2[0] + (parseInt(pos2[1])+1);
@@ -431,40 +443,82 @@ let handlerMove = (pos1,pos2,lista) => {
 		  	let index = oPawns.findIndex( x => x.position===div2.id);
 		    oPawns.splice(index, 1);
 		    boundedClickHandler.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
 		    boundedClickHandler_Knight.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
 		    boundedClickHandler_Bishop.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Rook": {
 		    let index = oRooks.findIndex( x => x.position===div2.id);
 		    oRooks.splice(index, 1);
 		    boundedClickHandler_Rook.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Queen": {
 		    let index = oQueens.findIndex( x => x.position===div2.id);
 		    oQueens.splice(index, 1);
 		    boundedClickHandler_Queen.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "King": {
 		    let index = oKings.findIndex( x => x.position===div2.id);
 		    oKings.splice(index, 1);
 		    boundedClickHandler_King.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza capturada");
+		    //console.log("Sin pieza capturada");
 		    break;
 			}
 		}
@@ -474,32 +528,38 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Pawn";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza blanca");
 		} else if (div1Color === "Black") {
 			div2.innerHTML = blackPawn;
 			div2.dataset.piece = "Pawn";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza negra");
 		}
 	}
+	
 	//Update lastMovedPiece (for en Passant and castling)
 	lastMovedPiece.piece = div2.dataset.piece;
 	lastMovedPiece.color = div2.dataset.pieceColor;
 	lastMovedPiece.initialPosition = pos1;
 	lastMovedPiece.finalPosition = pos2;
 	
+	//Remove gray events
+	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
+	lista.forEach( (el,i) => {
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove[i]);
+	});
+
 	//Pawn promotion
 	let pos2Row = parseInt(pos2[1]);
 	if (pos2Row===8) {
-	  	openModal(modal1);
+	 	piezaSeleccionada = await pawnPromotion("White");
 		switch (piezaSeleccionada) {
 		  case "Knight": {
 		  	div2.innerHTML = whiteKnight;
 			div2.dataset.piece = "Knight";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Caballo blanco");
+			//console.log("Promocion: Caballo blanco");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -515,7 +575,7 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Bishop";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Alfil blanco");
+			//console.log("Promocion: Alfil blanco");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -531,7 +591,7 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Rook";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Torre blanca");
+			//console.log("Promocion: Torre blanca");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -547,7 +607,7 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Queen";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Reina blanca");
+			//console.log("Promocion: Reina blanca");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -559,19 +619,21 @@ let handlerMove = (pos1,pos2,lista) => {
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza seleccionada para promoción");
+		    //console.log("Sin pieza seleccionada para promoción");
 		    break;
 			}
-		}	
+		}
+	  		
 	}else if (pos2Row===1) {
-		openModal(modal2);
-		switch (piezaSeleccionada) {
+
+	 	piezaSeleccionada2 = await pawnPromotion("Black");
+		switch (piezaSeleccionada2) {
 		  case "Knight": {
 		  	div2.innerHTML = blackKnight;
 			div2.dataset.piece = "Knight";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Caballo negro");
+			//console.log("Promocion: Caballo negro");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -587,7 +649,7 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Bishop";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Alfil negro");
+			//console.log("Promocion: Alfil negro");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -603,7 +665,7 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Rook";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Torre negra");
+			//console.log("Promocion: Torre negra");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -619,7 +681,7 @@ let handlerMove = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Queen";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Promocion: Reina negra");
+			//console.log("Promocion: Reina negra");
 			//Deletes promoted Pawn
 		    let index = oPawns.findIndex( x => x.position===pos1);
 		    oPawns.splice(index, 1);
@@ -631,7 +693,7 @@ let handlerMove = (pos1,pos2,lista) => {
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza seleccionada para promoción");
+		    //console.log("Sin pieza seleccionada para promoción");
 		    break;
 			}
 		}
@@ -654,33 +716,42 @@ let handlerMove = (pos1,pos2,lista) => {
 	boundCH_Bishop();
 	boundCH_Rook();
 	boundCH_Queen();
-
 	boundCH_Knight();
+	//Update lists to be ready for the recalculation of kings valid moves
+	allPossibleMoves_W();
+	allPossibleMoves_B();
+	getSupportedBoxes();
+	//Update kings valid moves
 	boundCH_King();
 
-	
-	//Remove yellow events
-	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
-	lista.forEach( (el,i) => {
-		let element =document.getElementById(el);
-		element.removeEventListener("click", boundedHandlerMove[i]);
-	});
-
-	//Add all enemy events
+	//Add enemy events
 	if (div1Color === "White") {
-		addEventsPawns("Black");
-		addEvents_Knights("Black");
-		addEvents_Bishops("Black");
-		addEvents_Rooks("Black");
-		addEvents_Queens("Black");
-		addEvents_Kings("Black");
+		if ( allPossibleMovesW.includes(oKings[0].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("Black");
+		} else {
+			addEventsPawns("Black");
+			addEvents_Knights("Black");
+			addEvents_Bishops("Black");
+			addEvents_Rooks("Black");
+			addEvents_Queens("Black");
+			addEvents_Kings("Black");
+		}
+		
 	} else if (div1Color === "Black") {
-		addEventsPawns("White");
-		addEvents_Knights("White");
-		addEvents_Bishops("White");
-		addEvents_Rooks("White");
-		addEvents_Queens("White");
-		addEvents_Kings("White");
+		if ( allPossibleMovesB.includes(oKings[1].position) ) {
+			oKings[1].check = true;
+			boundCH_King();
+			addEvents_Kings("White");
+		} else {
+			addEventsPawns("White");
+			addEvents_Knights("White");
+			addEvents_Bishops("White");
+			addEvents_Rooks("White");
+			addEvents_Queens("White");
+			addEvents_Kings("White");
+		}
 	}
 }
 
@@ -721,7 +792,7 @@ function addEvents_Knights(color_Kn){
 		let element = document.getElementById(oKnights[i].position);
 		if (oKnights[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_Knight[i]);
-			console.log("Agregados Caballos")
+			//console.log("Agregados Caballos")
 		}
 	}
 }
@@ -748,7 +819,7 @@ let clickHandler_Knight = (lista,elemento) => {
 	}
 
 	if( listaCero.classList.contains("gray") ) {
-		console.log("Si hay amarillo");
+		//console.log("Si hay gris");
 		lista.forEach( (item,i) => {
 			boundedHandlerMove_Knight[i] = handlerMove_Knight.bind(null,elemento.id,item,lista);
 			let element = document.getElementById(item);
@@ -788,13 +859,11 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Knight";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza blanca");
 		} else {
 			div2.innerHTML = blackKnight;
 			div2.dataset.piece = "Knight";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza negra");
 		}
 	//Capture Rival Piece 				
 	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
@@ -810,40 +879,82 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 		  	let index = oPawns.findIndex( x => x.position===div2.id);
 		    oPawns.splice(index, 1);
 		    boundedClickHandler.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
 		    boundedClickHandler_Knight.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
 		    boundedClickHandler_Bishop.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Rook": {
 		    let index = oRooks.findIndex( x => x.position===div2.id);
 		    oRooks.splice(index, 1);
 		    boundedClickHandler_Rook.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Queen": {
 		    let index = oQueens.findIndex( x => x.position===div2.id);
 		    oQueens.splice(index, 1);
 		    boundedClickHandler_Queen.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "King": {
 		    let index = oKings.findIndex( x => x.position===div2.id);
 		    oKings.splice(index, 1);
 		    boundedClickHandler_King.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza capturada");
+		    //console.log("Sin pieza capturada");
 		    break;
 			}
 		}
@@ -853,13 +964,11 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Knight";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza blanca");
 		} else if (div1Color === "Black") {
 			div2.innerHTML = blackKnight;
 			div2.dataset.piece = "Knight";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza negra");
 		}
 	}
 
@@ -867,6 +976,13 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 	lastMovedPiece.color = div2.dataset.pieceColor;
 	lastMovedPiece.initialPosition = pos1;
 	lastMovedPiece.finalPosition = pos2;
+
+	//Remove gray events
+	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
+	lista.forEach( (el,i) => {
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove_Knight[i]);
+	});
 
 	//Update sign
 	cambiarTurno();
@@ -883,32 +999,42 @@ let handlerMove_Knight = (pos1,pos2,lista) => {
 	boundCH_Bishop();
 	boundCH_Rook();
 	boundCH_Queen();
-
 	boundCH();
+	//Update lists to be ready for the recalculation of kings valid moves 
+	allPossibleMoves_W();
+	allPossibleMoves_B();
+	getSupportedBoxes();
+	//Update kings valid moves
 	boundCH_King();
-	
-	//Remove yellow events
-	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
-	lista.forEach( (el,i) => {
-		let element =document.getElementById(el);
-		element.removeEventListener("click", boundedHandlerMove_Knight[i]);
-	});
 
-	//Add all enemy events
+	//Add enemy events
 	if (div1Color === "White") {
-		addEventsPawns("Black");
-		addEvents_Knights("Black");
-		addEvents_Bishops("Black");
-		addEvents_Rooks("Black");
-		addEvents_Queens("Black");
-		addEvents_Kings("Black");
+		if ( allPossibleMovesW.includes(oKings[0].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("Black");
+		} else {
+			addEventsPawns("Black");
+			addEvents_Knights("Black");
+			addEvents_Bishops("Black");
+			addEvents_Rooks("Black");
+			addEvents_Queens("Black");
+			addEvents_Kings("Black");
+		}
+
 	} else if (div1Color === "Black") {
-		addEventsPawns("White");
-		addEvents_Knights("White");
-		addEvents_Bishops("White");
-		addEvents_Rooks("White");
-		addEvents_Queens("White");
-		addEvents_Kings("White");
+		if ( allPossibleMovesB.includes(oKings[1].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("White");
+		} else {
+			addEventsPawns("White");
+			addEvents_Knights("White");
+			addEvents_Bishops("White");
+			addEvents_Rooks("White");
+			addEvents_Queens("White");
+			addEvents_Kings("White");
+		}
 	}
 }
 
@@ -932,7 +1058,7 @@ function removeEvents_Bishops(position_Kn="All"){
 		let element = document.getElementById(oBishops[i].position);
 		if (oBishops[i].position!=position_Kn){
 			element.removeEventListener("click", boundedClickHandler_Bishop[i]);
-			console.log("RemovidoAlfil1");	
+			//console.log("RemovidoAlfil1");	
 		}
 	}
 	//Remove all Bishop Events
@@ -940,7 +1066,7 @@ function removeEvents_Bishops(position_Kn="All"){
 		for (let i = 0; i < oBishops.length; i++) {
 			let element = document.getElementById(oBishops[i].position);
 			element.removeEventListener("click", boundedClickHandler_Bishop[i]);
-			console.log("Removidos todos los alfiles");
+			//console.log("Removidos todos los alfiles");
 		}
 	}
 }
@@ -950,10 +1076,11 @@ function addEvents_Bishops(color_Kn){
 		let element = document.getElementById(oBishops[i].position);
 		if (oBishops[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_Bishop[i]);
-			console.log("Agregados Alfiles")
+			//console.log("Agregados Alfiles")
 		}
 	}
 }
+
 let clickHandler_Bishop = (lista,elemento) => {
 	lista.forEach( el => document.getElementById(el).classList.toggle("gray") );
 	removeOthers(elemento.id);
@@ -964,7 +1091,6 @@ let clickHandler_Bishop = (lista,elemento) => {
 	removeEvents_Queens();
 	removeEvents_Kings();
 
-	console.log(lista)
 	let listaCero = document.getElementById(lista[0]);
 	if (listaCero===null) { 
 		setFalse();
@@ -978,7 +1104,7 @@ let clickHandler_Bishop = (lista,elemento) => {
 	}
 
 	if( listaCero.classList.contains("gray") ) {
-		console.log("Si hay amarillo");
+		//console.log("Si hay gris");
 		lista.forEach( (item,i) => {
 			boundedHandlerMove_Bishop[i] = handlerMove_Bishop.bind(null,elemento.id,item,lista);
 			let element = document.getElementById(item);
@@ -1018,13 +1144,11 @@ let handlerMove_Bishop = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Bishop";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza blanca");
 		} else {
 			div2.innerHTML = blackBishop;
 			div2.dataset.piece = "Bishop";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza negra");
 		}
 	//Capture Rival Piece 				
 	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
@@ -1040,40 +1164,82 @@ let handlerMove_Bishop = (pos1,pos2,lista) => {
 		  	let index = oPawns.findIndex( x => x.position===div2.id);
 		    oPawns.splice(index, 1);
 		    boundedClickHandler.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
 		    boundedClickHandler_Knight.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
 		    boundedClickHandler_Bishop.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Rook": {
 		    let index = oRooks.findIndex( x => x.position===div2.id);
 		    oRooks.splice(index, 1);
 		    boundedClickHandler_Rook.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Queen": {
 		    let index = oQueens.findIndex( x => x.position===div2.id);
 		    oQueens.splice(index, 1);
 		    boundedClickHandler_Queen.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "King": {
 		    let index = oKings.findIndex( x => x.position===div2.id);
 		    oKings.splice(index, 1);
 		    boundedClickHandler_King.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza capturada");
+		    //console.log("Sin pieza capturada");
 		    break;
 			}
 		}
@@ -1083,13 +1249,11 @@ let handlerMove_Bishop = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Bishop";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza blanca");
 		} else if (div1Color === "Black") {
 			div2.innerHTML = blackBishop;
 			div2.dataset.piece = "Bishop";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza negra");
 		}
 	}
 
@@ -1097,6 +1261,13 @@ let handlerMove_Bishop = (pos1,pos2,lista) => {
 	lastMovedPiece.color = div2.dataset.pieceColor;
 	lastMovedPiece.initialPosition = pos1;
 	lastMovedPiece.finalPosition = pos2;
+
+	//Remove gray events
+	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
+	lista.forEach( (el,i) => {
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove_Bishop[i]);
+	});
 
 	//Update sign
 	cambiarTurno();
@@ -1112,33 +1283,42 @@ let handlerMove_Bishop = (pos1,pos2,lista) => {
 	//Update rooks/queens list in case the bishop movement 'unlocks' a diagonal-column-row
 	boundCH_Rook();
 	boundCH_Queen();
-
 	boundCH();
 	boundCH_Knight();
+	//Update lists to be ready for the recalculation of kings valid moves
+	allPossibleMoves_W();
+	allPossibleMoves_B();
+	getSupportedBoxes();
+	//Update kings valid moves
 	boundCH_King();
 
-	//Remove yellow events
-	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
-	lista.forEach( (el,i) => {
-		let element =document.getElementById(el);
-		element.removeEventListener("click", boundedHandlerMove_Bishop[i]);
-	});
-
-	//Add all enemy events
+	//Add enemy events
 	if (div1Color === "White") {
-		addEventsPawns("Black");
-		addEvents_Knights("Black");
-		addEvents_Bishops("Black");
-		addEvents_Rooks("Black");
-		addEvents_Queens("Black");
-		addEvents_Kings("Black");
+		if ( allPossibleMovesW.includes(oKings[0].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("Black");
+		} else {
+			addEventsPawns("Black");
+			addEvents_Knights("Black");
+			addEvents_Bishops("Black");
+			addEvents_Rooks("Black");
+			addEvents_Queens("Black");
+			addEvents_Kings("Black");
+		}
 	} else if (div1Color === "Black") {
-		addEventsPawns("White");
-		addEvents_Knights("White");
-		addEvents_Bishops("White");
-		addEvents_Rooks("White");
-		addEvents_Queens("White");
-		addEvents_Kings("White");
+		if ( allPossibleMovesB.includes(oKings[1].position) ) {
+			oKings[1].check = true;
+			boundCH_King();
+			addEvents_Kings("White");
+		} else {
+			addEventsPawns("White");
+			addEvents_Knights("White");
+			addEvents_Bishops("White");
+			addEvents_Rooks("White");
+			addEvents_Queens("White");
+			addEvents_Kings("White");
+		}
 	}
 }
 
@@ -1162,7 +1342,7 @@ function removeEvents_Rooks(position_Kn="All"){
 		let element = document.getElementById(oRooks[i].position);
 		if (oRooks[i].position!=position_Kn){
 			element.removeEventListener("click", boundedClickHandler_Rook[i]);
-			console.log("RemovidoTorre1");	
+			//console.log("RemovidoTorre1");	
 		}
 	}
 	//Remove all Rook Events
@@ -1170,7 +1350,7 @@ function removeEvents_Rooks(position_Kn="All"){
 		for (let i = 0; i < oRooks.length; i++) {
 			let element = document.getElementById(oRooks[i].position);
 			element.removeEventListener("click", boundedClickHandler_Rook[i]);
-			console.log("Removidas todas las torres");
+			//console.log("Removidas todas las torres");
 		}
 	}
 }
@@ -1180,7 +1360,7 @@ function addEvents_Rooks(color_Kn){
 		let element = document.getElementById(oRooks[i].position);
 		if (oRooks[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_Rook[i]);
-			console.log("Agregados Torres")
+			//console.log("Agregados Torres")
 		}
 	}
 }
@@ -1207,7 +1387,7 @@ let clickHandler_Rook = (lista,elemento) => {
 	}
 
 	if( listaCero.classList.contains("gray") ) {
-		console.log("Si hay amarillo");
+		//console.log("Si hay gris");
 		lista.forEach( (item,i) => {
 			boundedHandlerMove_Rook[i] = handlerMove_Rook.bind(null,elemento.id,item,lista);
 			let element = document.getElementById(item);
@@ -1247,13 +1427,11 @@ let handlerMove_Rook = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Rook";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza blanca");
 		} else {
 			div2.innerHTML = blackRook;
 			div2.dataset.piece = "Rook";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza negra");
 		}
 	//Capture Rival Piece 				
 	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
@@ -1269,40 +1447,82 @@ let handlerMove_Rook = (pos1,pos2,lista) => {
 		  	let index = oPawns.findIndex( x => x.position===div2.id);
 		    oPawns.splice(index, 1);
 		    boundedClickHandler.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
 		    boundedClickHandler_Knight.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
 		    boundedClickHandler_Bishop.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Rook": {
 		    let index = oRooks.findIndex( x => x.position===div2.id);
 		    oRooks.splice(index, 1);
 		    boundedClickHandler_Rook.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Queen": {
 		    let index = oQueens.findIndex( x => x.position===div2.id);
 		    oQueens.splice(index, 1);
 		    boundedClickHandler_Queen.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "King": {
 		    let index = oKings.findIndex( x => x.position===div2.id);
 		    oKings.splice(index, 1);
 		    boundedClickHandler_King.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza capturada");
+		    //console.log("Sin pieza capturada");
 		    break;
 			}
 		}
@@ -1312,13 +1532,11 @@ let handlerMove_Rook = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Rook";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza blanca");
 		} else if (div1Color === "Black") {
 			div2.innerHTML = blackRook;
 			div2.dataset.piece = "Rook";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza negra");
 		}
 	}
 
@@ -1326,6 +1544,13 @@ let handlerMove_Rook = (pos1,pos2,lista) => {
 	lastMovedPiece.color = div2.dataset.pieceColor;
 	lastMovedPiece.initialPosition = pos1;
 	lastMovedPiece.finalPosition = pos2;
+
+	//Remove gray events
+	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
+	lista.forEach( (el,i) => {
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove_Rook[i]);
+	});
 
 	//Update sign
 	cambiarTurno();
@@ -1341,33 +1566,42 @@ let handlerMove_Rook = (pos1,pos2,lista) => {
 	//Update bishops/queens list in case the rook movement 'unlocks' a diagonal-column-row
 	boundCH_Bishop();
 	boundCH_Queen();
-
 	boundCH();
 	boundCH_Knight();
+	//Update lists to be ready for the recalculation of kings valid moves
+	allPossibleMoves_W();
+	allPossibleMoves_B();
+	getSupportedBoxes();
+	//Update kings valid moves
 	boundCH_King();
-	
-	//Remove yellow events
-	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
-	lista.forEach( (el,i) => {
-		let element =document.getElementById(el);
-		element.removeEventListener("click", boundedHandlerMove_Rook[i]);
-	});
 
-	//Add all enemy events
+	//Add enemy events
 	if (div1Color === "White") {
-		addEventsPawns("Black");
-		addEvents_Knights("Black");
-		addEvents_Bishops("Black");
-		addEvents_Rooks("Black");
-		addEvents_Queens("Black");
-		addEvents_Kings("Black");
+		if ( allPossibleMovesW.includes(oKings[0].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("Black");
+		} else {
+			addEventsPawns("Black");
+			addEvents_Knights("Black");
+			addEvents_Bishops("Black");
+			addEvents_Rooks("Black");
+			addEvents_Queens("Black");
+			addEvents_Kings("Black");
+		}
 	} else if (div1Color === "Black") {
-		addEventsPawns("White");
-		addEvents_Knights("White");
-		addEvents_Bishops("White");
-		addEvents_Rooks("White");
-		addEvents_Queens("White");
-		addEvents_Kings("White");
+		if ( allPossibleMovesB.includes(oKings[1].position) ) {
+			oKings[1].check = true;
+			boundCH_King();
+			addEvents_Kings("White");
+		} else {
+			addEventsPawns("White");
+			addEvents_Knights("White");
+			addEvents_Bishops("White");
+			addEvents_Rooks("White");
+			addEvents_Queens("White");
+			addEvents_Kings("White");
+		}
 	}
 }
 
@@ -1391,7 +1625,7 @@ function removeEvents_Queens(position_Kn="All"){
 		let element = document.getElementById(oQueens[i].position);
 		if (oQueens[i].position!=position_Kn){
 			element.removeEventListener("click", boundedClickHandler_Queen[i]);
-			console.log("RemovidoReina1");	
+			//console.log("RemovidoReina1");	
 		}
 	}
 	//Remove all Queen Events
@@ -1399,7 +1633,7 @@ function removeEvents_Queens(position_Kn="All"){
 		for (let i = 0; i < oQueens.length; i++) {
 			let element = document.getElementById(oQueens[i].position);
 			element.removeEventListener("click", boundedClickHandler_Queen[i]);
-			console.log("Removidas todas las reinas");
+			//console.log("Removidas todas las reinas");
 		}
 	}
 }
@@ -1409,7 +1643,7 @@ function addEvents_Queens(color_Kn){
 		let element = document.getElementById(oQueens[i].position);
 		if (oQueens[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_Queen[i]);
-			console.log("Agregada Reina")
+			//console.log("Agregada Reina")
 		}
 	}
 }
@@ -1423,7 +1657,6 @@ let clickHandler_Queen = (lista,elemento) => {
 	removeEvents_Queens(elemento.id);
 	removeEvents_Kings();
 
-	console.log(lista)
 	let listaCero = document.getElementById(lista[0]);
 	if (listaCero===null) { 
 		setFalse();
@@ -1437,7 +1670,7 @@ let clickHandler_Queen = (lista,elemento) => {
 	}
 
 	if( listaCero.classList.contains("gray") ) {
-		console.log("Si hay amarillo");
+		//console.log("Si hay gris");
 		lista.forEach( (item,i) => {
 			boundedHandlerMove_Queen[i] = handlerMove_Queen.bind(null,elemento.id,item,lista);
 			let element = document.getElementById(item);
@@ -1477,13 +1710,11 @@ let handlerMove_Queen = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Queen";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza blanca");
 		} else {
 			div2.innerHTML = blackQueen;
 			div2.dataset.piece = "Queen";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza negra");
 		}
 	//Capture Rival Piece 				
 	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
@@ -1499,40 +1730,82 @@ let handlerMove_Queen = (pos1,pos2,lista) => {
 		  	let index = oPawns.findIndex( x => x.position===div2.id);
 		    oPawns.splice(index, 1);
 		    boundedClickHandler.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
 		    boundedClickHandler_Knight.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
 		    boundedClickHandler_Bishop.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Rook": {
 		    let index = oRooks.findIndex( x => x.position===div2.id);
 		    oRooks.splice(index, 1);
 		    boundedClickHandler_Rook.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Queen": {
 		    let index = oQueens.findIndex( x => x.position===div2.id);
 		    oQueens.splice(index, 1);
 		    boundedClickHandler_Queen.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "King": {
 		    let index = oKings.findIndex( x => x.position===div2.id);
 		    oKings.splice(index, 1);
 		    boundedClickHandler_King.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza capturada");
+		    //console.log("Sin pieza capturada");
 		    break;
 			}
 		}
@@ -1542,13 +1815,11 @@ let handlerMove_Queen = (pos1,pos2,lista) => {
 			div2.dataset.piece = "Queen";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza blanca");
 		} else if (div1Color === "Black") {
 			div2.innerHTML = blackQueen;
 			div2.dataset.piece = "Queen";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza negra");
 		}
 	}
 
@@ -1556,6 +1827,13 @@ let handlerMove_Queen = (pos1,pos2,lista) => {
 	lastMovedPiece.color = div2.dataset.pieceColor;
 	lastMovedPiece.initialPosition = pos1;
 	lastMovedPiece.finalPosition = pos2;
+
+	//Remove gray events
+	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
+	lista.forEach( (el,i) => {
+		let element =document.getElementById(el);
+		element.removeEventListener("click", boundedHandlerMove_Queen[i]);
+	});
 
 	//Update sign
 	cambiarTurno();
@@ -1571,34 +1849,42 @@ let handlerMove_Queen = (pos1,pos2,lista) => {
 	//Update bishops/rooks list in case the queen movement 'unlocks' a diagonal-column-row
 	boundCH_Bishop();
 	boundCH_Rook();
-
 	boundCH();
 	boundCH_Knight();
+	//Update lists to be ready for the recalculation of kings valid moves
+	allPossibleMoves_W();
+	allPossibleMoves_B();
+	getSupportedBoxes();
+	//Update kings valid moves
 	boundCH_King();
 
-	
-	//Remove yellow events
-	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
-	lista.forEach( (el,i) => {
-		let element =document.getElementById(el);
-		element.removeEventListener("click", boundedHandlerMove_Queen[i]);
-	});
-
-	//Add all enemy events
+	//Add enemy events
 	if (div1Color === "White") {
-		addEventsPawns("Black");
-		addEvents_Knights("Black");
-		addEvents_Bishops("Black");
-		addEvents_Rooks("Black");
-		addEvents_Queens("Black");
-		addEvents_Kings("Black");
+		if ( allPossibleMovesW.includes(oKings[0].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("Black");
+		} else {
+			addEventsPawns("Black");
+			addEvents_Knights("Black");
+			addEvents_Bishops("Black");
+			addEvents_Rooks("Black");
+			addEvents_Queens("Black");
+			addEvents_Kings("Black");			
+		}
 	} else if (div1Color === "Black") {
-		addEventsPawns("White");
-		addEvents_Knights("White");
-		addEvents_Bishops("White");
-		addEvents_Rooks("White");
-		addEvents_Queens("White");
-		addEvents_Kings("White");
+		if ( allPossibleMovesB.includes(oKings[1].position) ) {
+			oKings[1].check = true;
+			boundCH_King();
+			addEvents_Kings("White");
+		} else {
+			addEventsPawns("White");
+			addEvents_Knights("White");
+			addEvents_Bishops("White");
+			addEvents_Rooks("White");
+			addEvents_Queens("White");
+			addEvents_Kings("White");
+		}
 	}
 }
 
@@ -1622,7 +1908,7 @@ function removeEvents_Kings(position_Kn="All"){
 		let element = document.getElementById(oKings[i].position);
 		if (oKings[i].position!=position_Kn){
 			element.removeEventListener("click", boundedClickHandler_King[i]);
-			console.log("RemovidoRey1");	
+			//console.log("RemovidoRey1");	
 		}
 	}
 	//Remove all King Events
@@ -1630,7 +1916,7 @@ function removeEvents_Kings(position_Kn="All"){
 		for (let i = 0; i < oKings.length; i++) {
 			let element = document.getElementById(oKings[i].position);
 			element.removeEventListener("click", boundedClickHandler_King[i]);
-			console.log("Removidos todos los reyes");
+			//console.log("Removidos todos los reyes");
 		}
 	}
 }
@@ -1640,11 +1926,12 @@ function addEvents_Kings(color_Kn){
 		let element = document.getElementById(oKings[i].position);
 		if (oKings[i].color === color_Kn){
 			element.addEventListener("click", boundedClickHandler_King[i]);
-			console.log("Agregado Rey")
+			//console.log("Agregado Rey")
 		}
 	}
 }
 let clickHandler_King = (lista,elemento) => {
+	
 	lista.forEach( el => document.getElementById(el).classList.toggle("gray") );
 	removeOthers(elemento.id);
 	removeEventsPawns();
@@ -1654,9 +1941,10 @@ let clickHandler_King = (lista,elemento) => {
 	removeEvents_Queens();
 	removeEvents_Kings(elemento.id);
 
-	console.log(lista)
 	let listaCero = document.getElementById(lista[0]);
 	if (listaCero===null) { 
+		if (elemento.dataset.pieceColor ==="Black" && oKings[0].check===true ||
+			elemento.dataset.pieceColor ==="White" && oKings[1].check===true) return;
 		setFalse();
 		addEventsPawns(elemento.dataset.pieceColor);
 		addEvents_Knights(elemento.dataset.pieceColor);
@@ -1666,26 +1954,28 @@ let clickHandler_King = (lista,elemento) => {
 		addEvents_Kings(elemento.dataset.pieceColor);
 		return;
 	}
-	console.log("breakpoint");
+
 	if( listaCero.classList.contains("gray") ) {
-		console.log("Si hay amarillo");
+		//console.log("Si hay gris");
 		lista.forEach( (item,i) => {
 			boundedHandlerMove_King[i] = handlerMove_King.bind(null,elemento.id,item,lista);
 			let element = document.getElementById(item);
 			element.addEventListener("click", boundedHandlerMove_King[i]);
 		});
 	} else {
+		lista.forEach( (item,i) => {
+			let element = document.getElementById(item);
+			element.removeEventListener("click", boundedHandlerMove_King[i]);
+		});
+		addEvents_Kings(elemento.dataset.pieceColor);
+		if (elemento.dataset.pieceColor ==="Black" && oKings[0]._check===true ||
+			elemento.dataset.pieceColor ==="White" && oKings[1]._check===true) return;
 		setFalse();
 		addEventsPawns(elemento.dataset.pieceColor);
 		addEvents_Knights(elemento.dataset.pieceColor);
 		addEvents_Bishops(elemento.dataset.pieceColor);
 		addEvents_Rooks(elemento.dataset.pieceColor);
 		addEvents_Queens(elemento.dataset.pieceColor);
-		addEvents_Kings(elemento.dataset.pieceColor);
-		lista.forEach( (item,i) => {
-			let element = document.getElementById(item);
-			element.removeEventListener("click", boundedHandlerMove_King[i]);
-		});
 	}
 }
 
@@ -1708,13 +1998,11 @@ let handlerMove_King = (pos1,pos2,lista) => {
 			div2.dataset.piece = "King";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza blanca");
 		} else {
 			div2.innerHTML = blackKing;
 			div2.dataset.piece = "King";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Mover: pieza negra");
 		}
 	//Capture Rival Piece 				
 	} else if (div2.dataset.isOccupied ==="true" && areDiv1Div2Different) {
@@ -1730,40 +2018,82 @@ let handlerMove_King = (pos1,pos2,lista) => {
 		  	let index = oPawns.findIndex( x => x.position===div2.id);
 		    oPawns.splice(index, 1);
 		    boundedClickHandler.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Knight": {
 		    let index = oKnights.findIndex( x => x.position===div2.id);
 		    oKnights.splice(index, 1);
 		    boundedClickHandler_Knight.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Bishop": {
 		  	let index = oBishops.findIndex( x => x.position===div2.id);
 		    oBishops.splice(index, 1);
 		    boundedClickHandler_Bishop.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Rook": {
 		    let index = oRooks.findIndex( x => x.position===div2.id);
 		    oRooks.splice(index, 1);
 		    boundedClickHandler_Rook.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "Queen": {
 		    let index = oQueens.findIndex( x => x.position===div2.id);
 		    oQueens.splice(index, 1);
 		    boundedClickHandler_Queen.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  case "King": {
 		    let index = oKings.findIndex( x => x.position===div2.id);
 		    oKings.splice(index, 1);
 		    boundedClickHandler_King.splice(index, 1);
+		    if (div1Color==="White") {
+		    	let j = blackPieces.findIndex( x => x.position===div2.id);
+		    	blackPieces.splice(j,1);
+		    } else if(div1Color==="Black"){
+		    	let j = whitePieces.findIndex( x => x.position===div2.id);
+		    	whitePieces.splice(j,1);
+		    }
 		    break;
 			}
 		  default: {
-		    console.log("Sin pieza capturada");
+		    //console.log("Sin pieza capturada");
 		    break;
 			}
 		}
@@ -1773,13 +2103,11 @@ let handlerMove_King = (pos1,pos2,lista) => {
 			div2.dataset.piece = "King";
 			div2.dataset.pieceColor = "White";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza blanca");
 		} else if (div1Color === "Black") {
 			div2.innerHTML = blackKing;
 			div2.dataset.piece = "King";
 			div2.dataset.pieceColor = "Black";
 			div2.dataset.isOccupied = "true";
-			console.log("Captura: pieza negra");
 		}
 	}
 
@@ -1788,85 +2116,516 @@ let handlerMove_King = (pos1,pos2,lista) => {
 	lastMovedPiece.initialPosition = pos1;
 	lastMovedPiece.finalPosition = pos2;
 
-	//Update sign
-	cambiarTurno();
-	//Update position
-	let k = oKings.findIndex( x => x.position===pos1);
-	oKings[k].position = pos2;
-	
-	//Remove pos1 event
-	div1.removeEventListener("click", boundedClickHandler_King[k]);
-	
-	//Update bounded function
-	boundCH_King();
-	//Update bishops/rooks/queens list in case the King movement 'unlocks' a diagonal-column-row
-	boundCH_Bishop();
-	boundCH_Rook();
-	boundCH_Queen();
-
-	boundCH();
-	boundCH_Knight();
-	
-	//Remove yellow events
+	//Remove gray events
 	lista.forEach( el => document.getElementById(el).classList.remove("gray") );
 	lista.forEach( (el,i) => {
 		let element =document.getElementById(el);
 		element.removeEventListener("click", boundedHandlerMove_King[i]);
 	});
 
-	//Add all enemy events
+	//Update sign
+	cambiarTurno();
+	//Update position
+	let k = oKings.findIndex( x => x.position===pos1);
+	oKings[k].position = pos2;
+	//Update 'check' status
+	oKings[k].check = false;
+	//Remove pos1 event
+	div1.removeEventListener("click", boundedClickHandler_King[k]);
+	
+	//Update lists to be ready for the recalculation of kings valid moves
+	allPossibleMoves_W();
+	allPossibleMoves_B();
+	getSupportedBoxes();
+	//Update bishops/rooks/queens list in case the King movement 'unlocks' a diagonal-column-row
+	boundCH_Bishop();
+	boundCH_Rook();
+	boundCH_Queen();
+	boundCH();
+	boundCH_Knight();
+	//Update bounded function
+	boundCH_King();
+
+	//Add enemy events
 	if (div1Color === "White") {
-		addEventsPawns("Black");
-		addEvents_Knights("Black");
-		addEvents_Bishops("Black");
-		addEvents_Rooks("Black");
-		addEvents_Queens("Black");
-		addEvents_Kings("Black");
+		if ( allPossibleMovesW.includes(oKings[0].position) ) {
+			oKings[0].check = true;
+			boundCH_King();
+			addEvents_Kings("Black");
+		} else {
+			addEventsPawns("Black");
+			addEvents_Knights("Black");
+			addEvents_Bishops("Black");
+			addEvents_Rooks("Black");
+			addEvents_Queens("Black");
+			addEvents_Kings("Black");
+		}
 	} else if (div1Color === "Black") {
-		addEventsPawns("White");
-		addEvents_Knights("White");
-		addEvents_Bishops("White");
-		addEvents_Rooks("White");
-		addEvents_Queens("White");
-		addEvents_Kings("White");
+		if ( allPossibleMovesB.includes(oKings[1].position) ) {
+			oKings[1].check = true;
+			boundCH_King();
+			addEvents_Kings("White");
+		} else {
+			addEventsPawns("White");
+			addEvents_Knights("White");
+			addEvents_Bishops("White");
+			addEvents_Rooks("White");
+			addEvents_Queens("White");
+			addEvents_Kings("White");
+		}
 	}
 }
 
 function boundCH_King(){
-	for (let i = 0; i < oKings.length; i++) {
-		let element = document.getElementById(oKings[i].position);
-		let lista = oKings[i].computeTarget();
-		boundedClickHandler_King[i] = clickHandler_King.bind(null,lista,element);
-	}
+	let element = document.getElementById(oKings[0].position);
+	let lista = oKings[0].computeTarget(allPossibleMovesW,supportedBoxesW);
+	boundedClickHandler_King[0] = clickHandler_King.bind(null,lista,element);
+
+	let element2 = document.getElementById(oKings[1].position);
+	let lista2 = oKings[1].computeTarget(allPossibleMovesB,supportedBoxesB);
+	boundedClickHandler_King[1] = clickHandler_King.bind(null,lista2,element2);
 }
 
 boundCH_King();
 addEvents_Kings("White");
-
-//========================================Prueba Modal=============================================
-openButton.addEventListener('click',() => { openModal(modal1) });
-
-
-overlay.addEventListener('click', () => {
-  const modals = document.querySelectorAll('.modal.active')
-  modals.forEach(modal => {
-    closeModal(modal)
-  })
-});
-var piezaSeleccionada = "";
-acceptButton.addEventListener('click',() => { piezaSeleccionada = closeModal(modal1) });
-acceptButton2.addEventListener('click',() => { piezaSeleccionada = closeModal(modal2) });
+//=======================================Modal Promocion===========================================
+acceptButton.addEventListener('click',() => { closeModal(modal1) });
+acceptButton2.addEventListener('click',() => { closeModal2(modal2) });
 
 function openModal(modal) {
   if (modal == null) return
   modal.classList.add('active')
-  overlay.classList.add('active')
 }
 
 function closeModal(modal) {
   if (modal == null) return
   modal.classList.remove('active')
-  overlay.classList.remove('active')
-  console.log(document.querySelector('input[name="pieza"]:checked').value)
-  return document.querySelector('input[name="pieza"]:checked').value;
+  let type = document.querySelector('input[name="pieza"]:checked').value;
+  _promote(type);
+}
+
+function closeModal2(modal) {
+  if (modal == null) return
+  modal.classList.remove('active')
+  let type = document.querySelector('input[name="pieza2"]:checked').value;
+  _promote(type);
+}
+//-------------------------------------------------------------------------------------------------
+async function pawnPromotion(color) {
+	var piezaS1;
+	if(color==="White") { 
+		openModal(modal1)
+	} else {
+		openModal(modal2)
+	}
+	var promise = new Promise( (resolve) => { _promote = resolve} );
+	await promise.then( (result) => { piezaS1=result} );
+	return piezaS1;
+}
+//-------------------------------------------------------------------------------------------------
+function getPiecesByColor(){
+	oPawns.forEach( (pawn) => {
+		if ( pawn.color === "White" ) whitePieces.push( pawn )
+		else blackPieces.push( pawn )
+	});
+	oKnights.forEach( (knight) => {
+		if ( knight.color === "White" ) whitePieces.push( knight )
+		else blackPieces.push( knight )
+	});
+	oBishops.forEach( (bishop) => {
+		if ( bishop.color === "White" ) whitePieces.push( bishop )
+		else blackPieces.push( bishop )
+	});
+	oRooks.forEach( (rook) => {
+		if ( rook.color === "White" ) whitePieces.push( rook )
+		else blackPieces.push( rook )
+	});
+	oQueens.forEach( (queen) => {
+		if ( queen.color === "White" ) whitePieces.push( queen )
+		else blackPieces.push( queen )
+	});
+	oKings.forEach( (king) => {
+		if ( king.color === "White" ) whitePieces.push( king )
+		else blackPieces.push( king )
+	});
+}
+
+function allPossibleMoves_W(){
+	allPossibleMovesW = [];
+	whitePieces.forEach( (item) => {
+		if (item.type === "Pawn") {
+			 allPossibleMovesW = allPossibleMovesW.concat( item.computeAttack() )
+		} else if (item.type === "King"){
+			allPossibleMovesW = allPossibleMovesW.concat( item.computeTarget(allPossibleMovesB,supportedBoxesB) )
+		} else {
+			allPossibleMovesW = allPossibleMovesW.concat( item.computeTarget() )
+		}
+	});
+}
+
+function allPossibleMoves_B(){
+	allPossibleMovesB = [];
+	blackPieces.forEach( (item) => {
+		if (item.type === "Pawn"){
+			allPossibleMovesB = allPossibleMovesB.concat( item.computeAttack() )
+		} else if (item.type === "King"){
+			allPossibleMovesB = allPossibleMovesB.concat( item.computeTarget(allPossibleMovesW,supportedBoxesW) )
+		} else {
+			allPossibleMovesB = allPossibleMovesB.concat( item.computeTarget() )
+		}
+	});
+}
+//-----------------------------Compute Supported Attack to the King--------------------------------
+function getSupportedBoxes(){
+	supportedBoxesB = [];
+	oKings[1].sorroundings.forEach( (x) => {
+	let xDiv = document.getElementById(x);
+	if (xDiv.dataset.pieceColor === "Black") {
+		if ( isBacked(x,"Black") ) supportedBoxesB.push(x)
+	}
+	});
+
+	supportedBoxesW = [];
+	oKings[0].sorroundings.forEach( (x) => {
+	let xDiv = document.getElementById(x);
+	if (xDiv.dataset.pieceColor === "White") {
+		if ( isBacked(x,"White") ) supportedBoxesW.push(x)
+	}
+	});
+}
+
+
+function isBacked(id, color) {
+
+	//BISHOPS AND QUEENS
+	//Upper Left Diagonal
+	let i = id[1];
+	let j = columns.indexOf(id[0]) + 1;
+	i++;
+	j--;
+	let next="" + columns[j-1] + i;
+	let n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor === color && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		i++;
+		j--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next); 
+	}
+
+	//Upper Right Diagonal
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	i++;
+	j++;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9) {
+		if (n.dataset.isOccupied === "false") {
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		i++;
+		j++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//Lower Left Diagonal
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	i--;
+	j--;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		i--;
+		j--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//Lower Right Diagonal
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	i--;
+	j++;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		i--;
+		j++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//ROOKS AND QUEENS
+	//Up
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	i++;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			i++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		i++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//Right
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	j++;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		j++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//Down
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	i--;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			i--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		i--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//Left
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	j--;
+	next="" + columns[j-1] + i;
+	n=document.getElementById(next);
+	while ( i<9 && j>0 && i>0 && j<9 ) {
+		if (n.dataset.isOccupied === "false") {
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			continue;
+		}
+		if (n.dataset.pieceColor===color && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+			return true;
+		}
+		j--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+	}
+
+	//KNIGHTS
+	//Upper side
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	if (j-1 > 0 && j-1 < 9 && parseInt(i)+2 > 0 && parseInt(i)+2 < 9) { 
+		let upper1 = "" + columns[j-2] + (parseInt(i) + 2);
+		let u1 = document.getElementById(upper1);
+		if(u1.dataset.pieceColor === color && u1.dataset.piece === "Knight"){
+			return true;
+		}
+	}
+	if (j+1 > 0 && j+1 < 9 && parseInt(i)+2 > 0 && parseInt(i)+2 < 9) { 
+		let upper2 = "" + columns[j-0] + (parseInt(i) + 2);
+		let u2 = document.getElementById(upper2);
+		if(u2.dataset.pieceColor === color && u2.dataset.piece === "Knight"){
+			return true;
+		}
+	}
+	if (j-2 > 0 && j-2 < 9 && parseInt(i)+1 > 0 && parseInt(i)+1 < 9) { 
+		let upper3 = "" + columns[j-3] + (parseInt(i) + 1);
+		let u3 = document.getElementById(upper3);
+		if(u3.dataset.pieceColor === color && u3.dataset.piece === "Knight"){
+			return true;
+		}
+	}
+	if (j+2 > 0 && j+2 < 9 && parseInt(i)+1 > 0 && parseInt(i)+1 < 9) { 
+		let upper4 = "" + columns[j+1] + (parseInt(i) + 1);
+		let u4 = document.getElementById(upper4);
+		if (u4.dataset.pieceColor === color && u4.dataset.piece === "Knight") {
+			return true;
+		}
+	}
+	//Lower side
+	if (j-1 > 0 && j-1 < 9 && parseInt(i)-2 > 0 && parseInt(i)-2 < 9) { 
+		let lower1 =  "" + columns[j-2] + (parseInt(i) - 2);
+		let l1 = document.getElementById(lower1);
+		if (l1.dataset.pieceColor === color && l1.dataset.piece === "Knight") {
+			return true;
+		}
+	}
+	if (j+1 > 0 && j+1 < 9 && parseInt(i)-2 > 0 && parseInt(i)-2 < 9) { 
+		let lower2 =  "" + columns[j-0] + (parseInt(i) - 2);
+		let l2 = document.getElementById(lower2);
+		if (l2.dataset.pieceColor === color && l2.dataset.piece === "Knight") {
+			return true;
+		}
+	}
+	if (j-2 > 0 && j-2 < 9 && parseInt(i)-1 > 0 && parseInt(i)-1 < 9) { 
+		let lower3 =  "" + columns[j-3] + (parseInt(i) - 1);
+		let l3 = document.getElementById(lower3);
+		if (l3.dataset.pieceColor === color && l3.dataset.piece === "Knight") {
+			return true;
+		}
+	}
+	if (j+2 > 0 && j+2 < 9 && parseInt(i)-1 > 0 && parseInt(i)-1 < 9) { 
+		let lower4 =  "" + columns[j+1] + (parseInt(i) - 1);
+		let l4 = document.getElementById(lower4);
+		if (l4.dataset.pieceColor === color && l4.dataset.piece === "Knight") {
+			return true;
+		}
+	}
+
+	//PAWNS
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	if(color == "Black" && j > 0 && j < 9 && i > 0 && i < 9){	
+		if (j !== 1 ){
+			let diagonal1="" + columns[j-2] + (parseInt(i) + 1);
+			let d1=document.getElementById(diagonal1);
+			if (d1.dataset.pieceColor === color && d1.dataset.piece === "Pawn") return true;
+		}
+		if (j !== 8 ){
+			let diagonal2="" + columns[j] + (parseInt(i) + 1);
+			let d2=document.getElementById(diagonal2);
+			if (d2.dataset.pieceColor === color && d2.dataset.piece === "Pawn") return true;		
+		}
+	} else if(color == "White" && j > 0 && j < 9 && i > 0 && i < 9) {
+		if (j !== 1 ){
+			let diagonal1="" + columns[j-2] + (parseInt(i) - 1);
+			let d1=document.getElementById(diagonal1);
+			if (d1.dataset.pieceColor === color && d1.dataset.piece === "Pawn") return true;					
+		}
+		if (j !== 8 ){
+			let diagonal2="" + columns[j] + (parseInt(i) - 1);
+			let d2=document.getElementById(diagonal2);
+			if (d2.dataset.pieceColor === color && d2.dataset.piece === "Pawn") return true;
+		}	
+	}
+
+	//KING
+	//Up-Left
+	i = id[1];
+	j = columns.indexOf(id[0]) + 1;
+	let upLeft = "" + columns[j-2] + (parseInt(i) + 1);
+	let uL = document.getElementById(upLeft);
+	if (j-1 > 0 && j-1 < 9 && parseInt(i)+1 > 0 && parseInt(i)+1 < 9) {
+		if(uL.dataset.pieceColor === color && uL.dataset.piece === "King") return true;
+	}
+		
+	//Up
+	let up = "" + columns[j-1] + (parseInt(i) + 1);
+	let u = document.getElementById(up);
+	if (j > 0 && j < 9 && parseInt(i)+1 > 0 && parseInt(i)+1 < 9) {
+		if(u.dataset.pieceColor === color && u.dataset.piece === "King" ) return true;
+	}
+	//Up-Right
+	let upRight = "" + columns[j] + (parseInt(i) + 1);
+	let uR = document.getElementById(upRight);
+	if (j+1 > 0 && j+1 < 9 && parseInt(i)+1 > 0 && parseInt(i)+1 < 9) {
+		if(uR.dataset.pieceColor === color && uR.dataset.piece === "King") return true;
+		
+	}
+
+	//Left
+	let left = "" + columns[j-2] + (parseInt(i));
+	let l = document.getElementById(left);
+	if (j-1 > 0 && j-1 < 9 && parseInt(i) > 0 && parseInt(i) < 9) {
+		if(l.dataset.pieceColor === color && l.dataset.piece === "King") return true;
+	}
+
+	//Right
+	let right = "" + columns[j] + (parseInt(i));
+	let r = document.getElementById(right);
+	if (j+1 > 0 && j+1 < 9 && parseInt(i) > 0 && parseInt(i) < 9) {
+		if(r.dataset.pieceColor === color && r.dataset.piece === "King") return true;
+	}
+
+	//Down-Left
+	let downLeft = "" + columns[j-2] + (parseInt(i) - 1);
+	let dL = document.getElementById(downLeft);
+	if (j-1 > 0 && j-1 < 9 && parseInt(i)-1 > 0 && parseInt(i)-1 < 9) {		
+		if(dL.dataset.pieceColor === color && dL.dataset.piece === "King") return true;
+	}
+
+	//Down
+	let down = "" + columns[j-1] + (parseInt(i) - 1);
+	let d = document.getElementById(down);
+	if (j > 0 && j < 9 && parseInt(i)-1 > 0 && parseInt(i)-1 < 9) {
+		if(d.dataset.pieceColor === color && d.dataset.piece === "King") return true;
+	}
+
+	//Down-Right
+	let downRight = "" + columns[j] + (parseInt(i) - 1);
+	let dR = document.getElementById(downRight);
+	if (j+1 > 0 && j+1 < 9 && parseInt(i)-1 > 0 && parseInt(i)-1 < 9) { 
+		if(dR.dataset.pieceColor === color && dR.dataset.piece === "King") return true;
+	}
+
+	return false;
 }

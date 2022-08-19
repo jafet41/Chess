@@ -20,6 +20,7 @@ export class Pawn{
 			this.direction = directions[1];
 		}
 		this.hasBeenMoved = false;
+		this.type = "Pawn";
 	}
 
 	get col()  {	return this._col;	}
@@ -41,7 +42,7 @@ export class Pawn{
 	}
 
 
-	computeTarget(oPawns,lastMovedPiece){
+	computeTarget(oPawns,lastMovedPiece) {
 		if(this.color == "White" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
 			let computedTiles = [];
 			if (parseInt(this.row) === 8) {
@@ -110,7 +111,6 @@ export class Pawn{
 		 			}
 				}
 			}
-			console.log(computedTiles);
 			return computedTiles;
 
 		} else {
@@ -182,7 +182,49 @@ export class Pawn{
 			 			}
 					}
 				}
-				console.log(computedTiles);
+				return computedTiles;
+			}
+		}
+	}
+
+	//Possible attacks to the king
+	computeAttack(){
+		if(this.color == "White" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
+			let computedTiles = [];
+			if (parseInt(this.row) === 8) {
+				return computedTiles;
+			}
+			
+			if (this.colN !== 1 ){
+				let diagonal1="" + columns[this.colN-2] + (parseInt(this.row) + 1);
+				let d1=document.getElementById(diagonal1);
+				computedTiles.push(diagonal1);
+			}
+			if (this.colN !== 8 ){
+				let diagonal2="" + columns[this.colN] + (parseInt(this.row) + 1);
+				let d2=document.getElementById(diagonal2);
+				computedTiles.push(diagonal2);				
+			}
+			return computedTiles;
+
+		} else {
+			if(this.color == "Black" && this.colN > 0 && this.colN < 9 && this.row > 0 && this.row < 9){
+				let computedTiles = [];
+				if (parseInt(this.row) === 1) {
+					return computedTiles;
+				}
+				
+				if (this.colN !== 1 ){
+					let diagonal1="" + columns[this.colN-2] + (parseInt(this.row) - 1);
+					let d1=document.getElementById(diagonal1);
+					computedTiles.push(diagonal1);					
+				}
+				if (this.colN !== 8 ){
+					let diagonal2="" + columns[this.colN] + (parseInt(this.row) - 1);
+					let d2=document.getElementById(diagonal2);
+					computedTiles.push(diagonal2);
+				}
+				
 				return computedTiles;
 			}
 		}
@@ -206,6 +248,7 @@ export class Rook{
 			this.direction = directions[1];
 		}
 		this.hasBeenMoved = false;
+		this.type = "Rook";
 	}
 
 	get col()  {	return this._col;	}
@@ -221,6 +264,7 @@ export class Rook{
 		this._col = newPos[0];	
 		this._colN = columns.indexOf(newPos[0]) + 1;
 		this._row = newPos[1];
+		
 		this.hasBeenMoved = true;
 	}
 
@@ -267,7 +311,7 @@ export class Rook{
 		i = this.row; 
 		j = this.colN;
 		i--;
-		while (i>0 && j>0) {
+		while (i>0) {
 			let next="" + columns[j-1] + i;
 			let n=document.getElementById(next);
 			if (n.dataset.isOccupied === "false" || n.dataset.pieceColor === this.enemyColor) {
@@ -318,6 +362,7 @@ export class Knight{
 			this.enemyColor = colors[0];
 			this.direction = directions[1];
 		}
+		this.type = "Knight";
 	}
 
 	get col()  {	return this._col;	}
@@ -415,6 +460,7 @@ export class Bishop{
 			this.enemyColor = colors[0];
 			this.direction = directions[1];
 		}
+		this.type = "Bishop";
 	}
 
 	get col()  {	return this._col;	}
@@ -535,6 +581,7 @@ export class Queen{
 			this.enemyColor = colors[0];
 			this.direction = directions[1];
 		}
+		this.type = "Queen";
 	}
 
 	get col()  {	return this._col;	}
@@ -722,12 +769,18 @@ export class King{
 			this.color = colors[0];
 			this.enemyColor = colors[1];
 			this.direction = directions[0];
+			this.sorroundings = ['D2','E2','F2','D1','F1'];
 		} else {
 			this.color = colors[1];
 			this.enemyColor = colors[0];
 			this.direction = directions[1];
+			this.sorroundings = ['D7','E7','F7','D8','F8'];
 		}
 		this.hasBeenMoved = false;
+		this.type = "King";
+		this.attackedSquares = [];
+		this.check = false;
+		this.mate = false;   
 	}
 
 	get col()  {	return this._col;	}
@@ -743,30 +796,101 @@ export class King{
 		this._col = newPos[0];	
 		this._colN = columns.indexOf(newPos[0]) + 1;
 		this._row = newPos[1];
+		this.hasBeenMoved = true;
+
+		//Update sorroundings
+		this.sorroundings = [];
+		let upLeft = "" + columns[this.colN-2] + (parseInt(this.row) + 1);
+		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9)
+			this.sorroundings.push(upLeft);
+		let up = "" + columns[this.colN-1] + (parseInt(this.row) + 1);
+		if (this.colN > 0 && this.colN < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9)
+			this.sorroundings.push(up);
+		let upRight = "" + columns[this.colN] + (parseInt(this.row) + 1);
+		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9)
+			this.sorroundings.push(upRight);
+
+		let left = "" + columns[this.colN-2] + (parseInt(this.row));
+		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9)
+			this.sorroundings.push(left);
+		let right = "" + columns[this.colN] + (parseInt(this.row));
+		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9)
+			this.sorroundings.push(right);
+		
+		let downLeft = "" + columns[this.colN-2] + (parseInt(this.row) - 1);
+		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9)
+			this.sorroundings.push(downLeft);
+		let down = "" + columns[this.colN-1] + (parseInt(this.row) - 1);
+		if (this.colN > 0 && this.colN < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9)
+			this.sorroundings.push(down);
+		let downRight = "" + columns[this.colN] + (parseInt(this.row) - 1);
+		if (this.colN+1 > 0 && this.colN+1 < 9 &&	parseInt(this.row)-1 > 0 &&	parseInt(this.row)-1 < 9)
+			this.sorroundings.push(downRight);
+	}
+	set check(newCheck) {
+		this._check = newCheck;
+	}
+	set mate(newMate) {
+		this._mate = newMate;
 	}
 
-	computeTarget(){
+	computeTarget(enemyPossibleMoves, enemySupportedBoxes){
 		let validMoves = [];
+		let backedBoxes = [];
+		if (enemySupportedBoxes===undefined) {
+			backedBoxes = [];
+		} else {
+			backedBoxes = [...enemySupportedBoxes];
+		}
+		//console.log(backedBoxes)
+
+		let invalidMoves = [];
+		if (this._check) {
+			let attackA = this.computeDiagonals();
+			let attackB = this.computeRowCols();
+			invalidMoves = attackA.extraBoxes.concat(attackB.extraBoxes);
+		}
+		console.log(invalidMoves)
 
 		//Up-Left
-		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
-			let upLeft = "" + columns[this.colN-2] + (parseInt(this.row) + 1);
+		var upLeft = "" + columns[this.colN-2] + (parseInt(this.row) + 1);
+		if (this.colN-1 > 0 && 
+			this.colN-1 < 9 && 
+			parseInt(this.row)+1 > 0 && 
+			parseInt(this.row)+1 < 9 && 
+			!enemyPossibleMoves.includes(upLeft) &&
+			!invalidMoves.includes(upLeft)		 &&
+			!backedBoxes.includes(upLeft)) { 
 			let uL = document.getElementById(upLeft);
 			if(uL.dataset.isOccupied === "false" || uL.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( upLeft );
 			}
 		}
+
+		
 		//Up
-		if (this.colN > 0 && this.colN < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
-			let up = "" + columns[this.colN-1] + (parseInt(this.row) + 1);
+		var up = "" + columns[this.colN-1] + (parseInt(this.row) + 1);
+		if (this.colN > 0 && 
+			this.colN < 9 && 
+			parseInt(this.row)+1 > 0 && 
+			parseInt(this.row)+1 < 9 &&
+			!enemyPossibleMoves.includes(up) &&
+			!invalidMoves.includes(up)		&&
+			!backedBoxes.includes(up)) {
 			let u = document.getElementById(up);
 			if(u.dataset.isOccupied === "false" || u.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( up );
 			}
 		}
 		//Up-Right
-		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9) { 
-			let upRight = "" + columns[this.colN] + (parseInt(this.row) + 1);
+		var upRight = "" + columns[this.colN] + (parseInt(this.row) + 1);
+		if (this.colN+1 > 0 && 
+			this.colN+1 < 9 && 
+			parseInt(this.row)+1 > 0 && 
+			parseInt(this.row)+1 < 9 &&
+			!enemyPossibleMoves.includes(upRight) &&
+			!invalidMoves.includes(upRight)		  &&
+			!backedBoxes.includes(upRight)) {
 			let uR = document.getElementById(upRight);
 			if(uR.dataset.isOccupied === "false" || uR.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( upRight );
@@ -775,16 +899,28 @@ export class King{
 
 
 		//Left
-		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9) { 
-			let left = "" + columns[this.colN-2] + (parseInt(this.row));
+		var left = "" + columns[this.colN-2] + (parseInt(this.row));
+		if (this.colN-1 > 0 && 
+			this.colN-1 < 9 && 
+			parseInt(this.row) > 0 && 
+			parseInt(this.row) < 9 &&
+			!enemyPossibleMoves.includes(left) &&
+			!invalidMoves.includes(left)	   &&
+			!backedBoxes.includes(left)) { 
 			let l = document.getElementById(left);
 			if(l.dataset.isOccupied === "false" || l.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( left );
 			}
 		}
 		//Right
-		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9) { 
-			let right = "" + columns[this.colN] + (parseInt(this.row));
+		var right = "" + columns[this.colN] + (parseInt(this.row));
+		if (this.colN+1 > 0 && 
+			this.colN+1 < 9 && 
+			parseInt(this.row) > 0 && 
+			parseInt(this.row) < 9 &&
+			!enemyPossibleMoves.includes(right) &&
+			!invalidMoves.includes(right)		&&
+			!backedBoxes.includes(right)) {
 			let r = document.getElementById(right);
 			if(r.dataset.isOccupied === "false" || r.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( right );
@@ -793,29 +929,356 @@ export class King{
 
 
 		//Down-Left
-		if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
-			let downLeft = "" + columns[this.colN-2] + (parseInt(this.row) - 1);
+		var downLeft = "" + columns[this.colN-2] + (parseInt(this.row) - 1);
+		if (this.colN-1 > 0 && 
+			this.colN-1 < 9 && 
+			parseInt(this.row)-1 > 0 && 
+			parseInt(this.row)-1 < 9 &&
+			!enemyPossibleMoves.includes(downLeft) &&
+			!invalidMoves.includes(downLeft)	   &&
+			!backedBoxes.includes(downLeft)) { 
 			let dL = document.getElementById(downLeft);
 			if(dL.dataset.isOccupied === "false" || dL.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( downLeft );
 			}
 		}
 		//Down
-		if (this.colN > 0 && this.colN < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
-			let down = "" + columns[this.colN-1] + (parseInt(this.row) - 1);
+		var down = "" + columns[this.colN-1] + (parseInt(this.row) - 1);
+		if (this.colN > 0 && 
+			this.colN < 9 && 
+			parseInt(this.row)-1 > 0 && 
+			parseInt(this.row)-1 < 9 &&
+			!enemyPossibleMoves.includes(down) &&
+			!invalidMoves.includes(down)	   &&
+			!backedBoxes.includes(down)) {
 			let d = document.getElementById(down);
 			if(d.dataset.isOccupied === "false" || d.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( down );
 			}
 		}
 		//Down-Right
-		if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9) { 
-			let downRight = "" + columns[this.colN] + (parseInt(this.row) - 1);
+		var downRight = "" + columns[this.colN] + (parseInt(this.row) - 1);
+		if (this.colN+1 > 0 && 
+			this.colN+1 < 9 && 
+			parseInt(this.row)-1 > 0 && 
+			parseInt(this.row)-1 < 9 &&
+			!enemyPossibleMoves.includes(downRight) &&
+			!invalidMoves.includes(downRight)	    &&
+			!backedBoxes.includes(downRight)) { 
 			let dR = document.getElementById(downRight);
 			if(dR.dataset.isOccupied === "false" || dR.dataset.pieceColor === this.enemyColor){
 				validMoves.push ( downRight );
 			}
 		}
+		//Castling
+		//QueenSide (Left)
+		// if (this.color === "White" && this.hasBeenMoved===false && rookHasBeenMoved===false) {
+
+		// }
 		return validMoves;
+	}
+
+	computeDiagonals(){
+		let attackedBoxes = [];
+		let extraBoxes = [];
+		let attackingPieces = [];
+		let temp = [];
+
+		//Upper Left Diagonal
+		let i = this.row;
+		let j = this.colN;
+		i++;
+		j--;
+		let next="" + columns[j-1] + i;
+		let n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				i++;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat( temp );
+				if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9){
+					let extraBox="" + columns[this.colN] + (parseInt(this.row) - 1);
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+		temp=[];
+
+		//Upper Right Diagonal
+		i = this.row;
+		j = this.colN;
+		i++;
+		j++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				i++;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat( temp );
+				if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9){
+					let extraBox="" + columns[this.colN-2] + (parseInt(this.row) - 1);
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+		temp=[];
+
+		//Lower Left Diagonal
+		i = this.row; 
+		j = this.colN;
+		i--;
+		j--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				i--;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat( temp );
+				if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9){
+					let extraBox="" + columns[this.colN] + (parseInt(this.row) + 1);
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+		temp=[];
+
+		//Lower Right Diagonal
+		i = this.row;
+		j = this.colN;
+		i--;
+		j++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				i--;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat( temp );
+				if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9){
+					let extraBox="" + columns[this.colN-2] + (parseInt(this.row) + 1);
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+
+		//return all 3 arrays as an object
+		let attackResult = {};
+		attackResult.boxes = attackedBoxes;
+		attackResult.extraBoxes = extraBoxes;
+		attackResult.pieces = attackingPieces; 
+
+		return attackResult;
+	}
+
+	computeRowCols(){
+		let attackedBoxes = [];
+		let extraBoxes = [];
+		let attackingPieces = [];
+		let temp = [];
+
+		//Up
+		let i = this.row;
+		let j = this.colN;
+		i++;
+		let next="" + columns[j-1] + i;
+		let n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				i++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat(temp);
+				if (this.colN > 0 && this.colN < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9){
+					let extraBox="" + columns[this.colN-1] + (parseInt(this.row) - 1);
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			i++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+		temp = [];
+
+		//Right
+		i = this.row;
+		j = this.colN;
+		j++;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat(temp);
+				if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9){
+					let extraBox="" + columns[this.colN-2] + this.row;
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+		temp = [];
+
+		//Down
+		i = this.row; 
+		j = this.colN;
+		i--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				i--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat(temp);
+				if (this.colN > 0 && this.colN < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9){
+					let extraBox="" + columns[this.colN-1] + (parseInt(this.row) + 1);
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			i--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+		temp = [];
+
+		//Left
+		i = this.row;
+		j = this.colN;
+		j--;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		while ( i<9 && j>0 && i>0 && j<9 ) {
+			if (n.dataset.isOccupied === "false") {
+				temp.push( next );
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+				continue;
+			}
+			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				temp.push( next );
+				attackedBoxes = attackedBoxes.concat(temp);
+				if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9){
+					let extraBox="" + columns[this.colN] + this.row;
+					extraBoxes.push( extraBox );
+				}
+				let a = {};
+				a.piece = n.dataset.piece;
+				a.id = n.id;
+				attackingPieces.push( a );
+				break;
+			}
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+		}
+
+		//return all 3 arrays as an object
+		let attackResult = {};
+		attackResult.boxes = attackedBoxes;
+		attackResult.extraBoxes = extraBoxes;
+		attackResult.pieces = attackingPieces; 
+
+		return attackResult;
 	}
 }

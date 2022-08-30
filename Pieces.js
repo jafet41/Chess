@@ -850,7 +850,6 @@ export class King{
 			let attackB = this.computeRowCols();
 			invalidMoves = attackA.extraBoxes.concat(attackB.extraBoxes);
 		}
-		console.log(invalidMoves)
 
 		//Up-Left
 		var upLeft = "" + columns[this.colN-2] + (parseInt(this.row) + 1);
@@ -970,11 +969,20 @@ export class King{
 				validMoves.push ( downRight );
 			}
 		}
-		//Castling
-		//QueenSide (Left)
-		// if (this.color === "White" && this.hasBeenMoved===false && rookHasBeenMoved===false) {
+		//Castling Queenside
+		var flagQS;
+		if (this.color==="White") flagQS = this.isQueenSide("White");
+		else if (this.color==="Black") flagQS = this.isQueenSide("Black");
+		var castlingQS = "" + columns[this.colN-3] + (parseInt(this.row));
+		if ( flagQS ) validMoves.push( castlingQS );
+		
+		//Castling Kingside
+		var flagKS;
+		if (this.color==="White") flagKS = this.isKingSide("White");
+		else if (this.color==="Black") flagKS = this.isKingSide("Black");
+		var castlingKS = "" + columns[this.colN+1] + (parseInt(this.row));
+		if ( flagKS ) validMoves.push( castlingKS );
 
-		// }
 		return validMoves;
 	}
 
@@ -983,6 +991,12 @@ export class King{
 		let extraBoxes = [];
 		let attackingPieces = [];
 		let temp = [];
+
+		let tempDiagBoxesPin = [];
+		let pinnedPieces = [];
+		let tempPinned = {};
+		let pinnedCount = 0;
+
 
 		//Upper Left Diagonal
 		let i = this.row;
@@ -993,6 +1007,7 @@ export class King{
 		let n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempDiagBoxesPin.push( next );
 				temp.push( next );
 				i++;
 				j--;
@@ -1001,6 +1016,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempDiagBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat( temp );
 				if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9){
@@ -1012,6 +1036,10 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			i++;
 			j--;
@@ -1020,6 +1048,9 @@ export class King{
 		}
 		temp=[];
 
+		tempDiagBoxesPin = [];
+		tempPinned = {};
+		pinnedCount = 0;
 		//Upper Right Diagonal
 		i = this.row;
 		j = this.colN;
@@ -1029,6 +1060,7 @@ export class King{
 		n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9) {
 			if (n.dataset.isOccupied === "false") {
+				tempDiagBoxesPin.push( next );
 				temp.push( next );
 				i++;
 				j++;
@@ -1037,6 +1069,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempDiagBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat( temp );
 				if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9){
@@ -1048,6 +1089,10 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			i++;
 			j++;
@@ -1056,6 +1101,9 @@ export class King{
 		}
 		temp=[];
 
+		tempDiagBoxesPin = [];
+		tempPinned = {};
+		pinnedCount = 0;
 		//Lower Left Diagonal
 		i = this.row; 
 		j = this.colN;
@@ -1065,6 +1113,7 @@ export class King{
 		n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempDiagBoxesPin.push( next );
 				temp.push( next );
 				i--;
 				j--;
@@ -1073,6 +1122,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempDiagBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat( temp );
 				if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9){
@@ -1084,6 +1142,10 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			i--;
 			j--;
@@ -1092,6 +1154,9 @@ export class King{
 		}
 		temp=[];
 
+		tempDiagBoxesPin = [];
+		tempPinned = {};
+		pinnedCount = 0;
 		//Lower Right Diagonal
 		i = this.row;
 		j = this.colN;
@@ -1101,6 +1166,7 @@ export class King{
 		n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempDiagBoxesPin.push( next );
 				temp.push( next );
 				i--;
 				j++;
@@ -1109,6 +1175,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Bishop" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempDiagBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat( temp );
 				if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9){
@@ -1120,6 +1195,10 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			i--;
 			j++;
@@ -1127,11 +1206,12 @@ export class King{
 			n=document.getElementById(next);
 		}
 
-		//return all 3 arrays as an object
+		//return all as an object
 		let attackResult = {};
 		attackResult.boxes = attackedBoxes;
 		attackResult.extraBoxes = extraBoxes;
-		attackResult.pieces = attackingPieces; 
+		attackResult.pieces = attackingPieces;
+		attackResult.pinnedPieces = pinnedPieces;
 
 		return attackResult;
 	}
@@ -1142,6 +1222,11 @@ export class King{
 		let attackingPieces = [];
 		let temp = [];
 
+		let tempRCBoxesPin = [];
+		let pinnedPieces = [];
+		let tempPinned = {};
+		let pinnedCount = 0;
+
 		//Up
 		let i = this.row;
 		let j = this.colN;
@@ -1150,6 +1235,7 @@ export class King{
 		let n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempRCBoxesPin.push( next );
 				temp.push( next );
 				i++;
 				next="" + columns[j-1] + i;
@@ -1157,6 +1243,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempRCBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat(temp);
 				if (this.colN > 0 && this.colN < 9 && parseInt(this.row)-1 > 0 && parseInt(this.row)-1 < 9){
@@ -1168,12 +1263,20 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			i++;
 			next="" + columns[j-1] + i;
 			n=document.getElementById(next);
 		}
 		temp = [];
+
+		tempRCBoxesPin = [];
+		tempPinned = {};
+		pinnedCount = 0;
 
 		//Right
 		i = this.row;
@@ -1183,6 +1286,7 @@ export class King{
 		n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempRCBoxesPin.push( next );
 				temp.push( next );
 				j++;
 				next="" + columns[j-1] + i;
@@ -1190,6 +1294,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempRCBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat(temp);
 				if (this.colN-1 > 0 && this.colN-1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9){
@@ -1201,12 +1314,20 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			j++;
 			next="" + columns[j-1] + i;
 			n=document.getElementById(next);
 		}
 		temp = [];
+
+		tempRCBoxesPin = [];
+		tempPinned = {};
+		pinnedCount = 0;
 
 		//Down
 		i = this.row; 
@@ -1216,6 +1337,7 @@ export class King{
 		n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempRCBoxesPin.push( next );
 				temp.push( next );
 				i--;
 				next="" + columns[j-1] + i;
@@ -1223,23 +1345,40 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempRCBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat(temp);
 				if (this.colN > 0 && this.colN < 9 && parseInt(this.row)+1 > 0 && parseInt(this.row)+1 < 9){
 					let extraBox="" + columns[this.colN-1] + (parseInt(this.row) + 1);
 					extraBoxes.push( extraBox );
-				}
+				} 
 				let a = {};
 				a.piece = n.dataset.piece;
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			i--;
 			next="" + columns[j-1] + i;
 			n=document.getElementById(next);
 		}
 		temp = [];
+
+		tempRCBoxesPin = [];
+		tempPinned = {};
+		pinnedCount = 0;
 
 		//Left
 		i = this.row;
@@ -1249,6 +1388,7 @@ export class King{
 		n=document.getElementById(next);
 		while ( i<9 && j>0 && i>0 && j<9 ) {
 			if (n.dataset.isOccupied === "false") {
+				tempRCBoxesPin.push( next );
 				temp.push( next );
 				j--;
 				next="" + columns[j-1] + i;
@@ -1256,6 +1396,15 @@ export class King{
 				continue;
 			}
 			if (n.dataset.pieceColor===this.enemyColor && (n.dataset.piece==="Rook" || n.dataset.piece==="Queen")) {
+				//Code for the pinned pieces
+				if (pinnedCount === 1) {
+					tempPinned.attacker = n.dataset.piece;
+					tempPinned.attackerID = n.id;
+					tempPinned.attackedBoxesPin = tempRCBoxesPin;
+					pinnedPieces.push(tempPinned);
+					break;
+				}
+				//Code for check attacks
 				temp.push( next );
 				attackedBoxes = attackedBoxes.concat(temp);
 				if (this.colN+1 > 0 && this.colN+1 < 9 && parseInt(this.row) > 0 && parseInt(this.row) < 9){
@@ -1267,18 +1416,1041 @@ export class King{
 				a.id = n.id;
 				attackingPieces.push( a );
 				break;
+			} else if (n.dataset.pieceColor===this.color && n.dataset.piece!=="King") {
+				tempPinned.piece = n.dataset.piece;
+				tempPinned.id = n.id;
+				pinnedCount++;
 			}
 			j--;
 			next="" + columns[j-1] + i;
 			n=document.getElementById(next);
 		}
 
-		//return all 3 arrays as an object
+		//return all as an object
 		let attackResult = {};
 		attackResult.boxes = attackedBoxes;
 		attackResult.extraBoxes = extraBoxes;
 		attackResult.pieces = attackingPieces; 
+		attackResult.pinnedPieces = pinnedPieces;
 
 		return attackResult;
+	}
+
+	computeKnMoves(){
+		let attackedBoxes = [];
+		//let extraBoxes = [];
+		let attackingPieces = [];
+
+		//Upper Side
+		let i = this.row;
+		let j = this.colN;
+		i= i+1;
+		j= j-2;
+		let next="" + columns[j-1] + i;
+		let n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push( next );
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+
+		i = this.row;
+		j = this.colN;
+		i= i+2;
+		j= j-1;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push( next );
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+
+		i = this.row;
+		j = this.colN;
+		i= i+2;
+		j= j+1;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push( next );
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+
+		i = this.row;
+		j = this.colN;
+		i= i+1;
+		j= j+2;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push( next );
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+		
+		//Lower side
+		i = this.row;
+		j = this.colN;
+		i= i-1;
+		j= j+2;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push( next );
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+
+		i = this.row;
+		j = this.colN;
+		i= i-2;
+		j= j+1;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push(next);
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+
+		i = this.row;
+		j = this.colN;
+		i= i-2;
+		j= j-1;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push(next);
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+		
+		i = this.row;
+		j = this.colN;
+		i= i-1;
+		j= j-2;
+		next="" + columns[j-1] + i;
+		n=document.getElementById(next);
+		if ( i<9 && j>0 && i>0 && j<9 && n.dataset.pieceColor===this.enemyColor && n.dataset.piece==="Knight") {
+			attackedBoxes.push(next);
+			let a = {};
+			a.piece = n.dataset.piece;
+			a.id = n.id;
+			attackingPieces.push( a );
+		}
+
+
+		//return all 3 arrays as an object
+		let attackResult = {};
+		attackResult.boxes = attackedBoxes;
+		//attackResult.extraBoxes = extraBoxes;
+		attackResult.pieces = attackingPieces; 
+
+		return attackResult;
+	}
+
+	isQueenSide(color){
+		let a1 = document.getElementById("A1");
+		let a8 = document.getElementById("A8");
+		if (color==="White") {
+			if (this._check || this.hasBeenMoved===true) return false;
+			if (a1.dataset.hasBeenMoved!=="false") return false;
+
+			let b1=document.getElementById("B1");
+			let c1=document.getElementById("C1");
+			let d1=document.getElementById("D1");
+
+			if (b1.dataset.isOccupied === "true" ||
+				c1.dataset.isOccupied === "true" ||
+				d1.dataset.isOccupied === "true") {
+				return false;
+			}
+
+			//C1 menace checkup
+			//Up
+			let i = 1;
+			let j = 3;
+			i++;
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Left Diagonal
+			i = 1;
+			j = 3;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Right Diagonal
+			i = 1;
+			j = 3;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 1;
+			j = 3;
+			i = i+1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 3;
+			i = i+2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 3;
+			i = i+2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 3;
+			i = i+1;
+			j = j+2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn & King moves
+			i = 1;
+			j = 3;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also check for king in B2 
+			if (n.dataset.pieceColor==="Black" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King"))	return false;
+			i = 1;
+			j = 3;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Pawn")	return false;
+
+
+			//D1 menace checkup
+			//Up
+			i = 1;
+			j = 4;
+			i++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Left Diagonal
+			i = 1;
+			j = 4;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Right Diagonal
+			i = 1;
+			j = 4;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 1;
+			j = 4;
+			i = i+1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 4;
+			i = i+2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 4;
+			i = i+2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 4;
+			i = i+1;
+			j = j+2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn moves
+			i = 1;
+			j = 4;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also check for King in C2 
+			if (n.dataset.pieceColor==="Black" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King"))	return false;
+			i = 1;
+			j = 4;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Pawn")	return false;
+
+			//If passed all proofs return true for a possible castling QS
+			return true;
+
+		} else if (color==="Black"){
+			if (this._check || this.hasBeenMoved===true) return false;
+			if (a8.dataset.hasBeenMoved!=="false") return false;
+
+			let b8=document.getElementById("B8");
+			let c8=document.getElementById("C8");
+			let d8=document.getElementById("D8");
+
+			if (b8.dataset.isOccupied==="true" || 
+				c8.dataset.isOccupied==="true" || 
+				d8.dataset.isOccupied==="true") {
+				return false;
+			}
+
+			//C8 menace checkup
+			//Down
+			let i = 8;
+			let j = 3;
+			i--;
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Left Diagonal
+			i = 8;
+			j = 3;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Right Diagonal
+			i = 8;
+			j = 3;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 8;
+			j = 3;
+			i = i-1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 3;
+			i = i-2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 3;
+			i = i-2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 3;
+			i = i-1;
+			j = j+2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn & King moves
+			i = 8;
+			j = 3;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also check for king in B7
+			if (n.dataset.pieceColor==="White" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King"))	return false;
+			i = 8;
+			j = 3;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Pawn")	return false;
+
+			//D8 menace checkup
+			//Down
+			i = 8;
+			j = 4;
+			i--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Left Diagonal
+			i = 8;
+			j = 4;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Right Diagonal
+			i = 8;
+			j = 4;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 8;
+			j = 4;
+			i = i-1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 4;
+			i = i-2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 4;
+			i = i-2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 4;
+			i = i-1;
+			j = j+2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn & King moves
+			i = 8;
+			j = 4;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also chek for king in C7
+			if (n.dataset.pieceColor==="White" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King"))	return false;
+			i = 8;
+			j = 4;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Pawn")	return false;
+			//If passed all proofs return true for a possible castling QS
+			return true;
+		}
+	}
+
+	isKingSide(color){
+		let h1 = document.getElementById("H1");
+		let h8 = document.getElementById("H8");
+		if (color==="White") {
+			if (this._check || this.hasBeenMoved===true) return false;
+			if (h1.dataset.hasBeenMoved!=="false") return false;
+
+			let f1=document.getElementById("F1");
+			let g1=document.getElementById("G1");
+
+			if (f1.dataset.isOccupied === "true" ||
+				g1.dataset.isOccupied === "true" ) {
+				return false;
+			}
+
+			//F1 menace checkup
+			//Up
+			let i = 1;
+			let j = 6;
+			i++;
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Left Diagonal
+			i = 1;
+			j = 6;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Right Diagonal
+			i = 1;
+			j = 6;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 1;
+			j = 6;
+			i = i+1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 6;
+			i = i+2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 6;
+			i = i+2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 6;
+			i = i+1;
+			j = j+2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn & king moves
+			i = 1;
+			j = 6;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next); 
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Pawn")	return false;
+			i = 1;
+			j = 6;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also check for king in G2 
+			if (n.dataset.pieceColor==="Black" && (n.dataset.piece==="Pawn" || n.dataset.piece==="King")) return false;
+			
+
+			//G1 menace checkup
+			//Up
+			i = 1;
+			j = 7;
+			i++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Left Diagonal
+			i = 1;
+			j = 7;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Upper Right Diagonal
+			i = 1;
+			j = 7;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="Black" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="White") break;
+				i++;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 1;
+			j = 7;
+			i = i+1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 7;
+			i = i+2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 1;
+			j = 7;
+			i = i+2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn moves
+			i = 1;
+			j = 7;
+			i++;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="Black" && n.dataset.piece==="Pawn")	return false;
+			i = 1;
+			j = 7;
+			i++;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also check for king in H2
+			if (n.dataset.pieceColor==="Black" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King")) return false;
+
+			//If passed all proofs return true for a possible castling QS
+			return true;
+
+		} else if (color==="Black"){
+			if (this._check || this.hasBeenMoved===true) return false;
+			if (h8.dataset.hasBeenMoved!=="false") return false;
+
+			let f8=document.getElementById("F8");
+			let g8=document.getElementById("G8");
+
+
+			if (f8.dataset.isOccupied==="true" || 
+				g8.dataset.isOccupied==="true" ) {
+				return false;
+			}
+
+			//F8 menace checkup
+			//Down
+			let i = 8;
+			let j = 6;
+			i--;
+			let next="" + columns[j-1] + i;
+			let n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Left Diagonal
+			i = 8;
+			j = 6;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Right Diagonal
+			i = 8;
+			j = 6;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 8;
+			j = 6;
+			i = i-1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 6;
+			i = i-2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 6;
+			i = i-2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 6;
+			i = i-1;
+			j = j+2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn & King moves
+			i = 8;
+			j = 6;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Pawn")	return false;
+			i = 8;
+			j = 6;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also chek for a king in G7
+			if (n.dataset.pieceColor==="White" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King"))	return false;
+
+			//G8 menace checkup
+			//Down
+			i = 8;
+			j = 7;
+			i--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Rook" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Left Diagonal
+			i = 8;
+			j = 7;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9 ) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j--;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Lower Right Diagonal
+			i = 8;
+			j = 7;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			while ( i<9 && j>0 && i>0 && j<9) {
+				if ( n.dataset.isOccupied==="true" && n.dataset.pieceColor==="White" &&
+					(n.dataset.piece==="Bishop" || n.dataset.piece==="Queen") ) {
+					return false; 
+				} else if (n.dataset.pieceColor==="Black") break;
+				i--;
+				j++;
+				next="" + columns[j-1] + i;
+				n=document.getElementById(next);
+			}
+			//Knight moves
+			i = 8;
+			j = 7;
+			i = i-1;
+			j = j-2;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 7;
+			i = i-2;
+			j = j-1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			i = 8;
+			j = 7;
+			i = i-2;
+			j = j+1;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Knight") {
+				return false;
+			}
+			//Pawn & king moves
+			i = 8;
+			j = 7;
+			i--;
+			j--;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			if (n.dataset.pieceColor==="White" && n.dataset.piece==="Pawn")	return false;
+			i = 8;
+			j = 7;
+			i--;
+			j++;
+			next="" + columns[j-1] + i;
+			n=document.getElementById(next);
+			//Also check for a king in H7
+			if (n.dataset.pieceColor==="White" && (n.dataset.piece==="Pawn"||n.dataset.piece==="King"))	return false;
+			//If passed all proofs return true for a possible castling QS
+			return true;
+		}
 	}
 }
